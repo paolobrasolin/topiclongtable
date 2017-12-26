@@ -25,9 +25,15 @@
 \prop_new:N \toptab_cur_table_row_spans
 \clist_new:N \toptab_cur_table_computed_heights
 
-\prop_new:N \toptab_cell_heights_prop
+\prop_new:N \toptab_loaded_data
 \prop_new:N \toptab_data
-%% \prop_show:N \toptab_cell_heights_prop
+%% \prop_show:N \toptab_loaded_data
+
+\int_new:N \toptab_col_idx_int
+\int_new:N \toptab_col_tot_int
+\int_gset:Nn \toptab_col_idx_int {4} % TODO
+
+
 
 \iow_new:N \g_toptab_stream
 
@@ -46,10 +52,10 @@
   \int_zero:N \l_tmpa_int
   \clist_map_inline:Nn \l_tmpa_clist {
     \int_incr:N \l_tmpa_int
-    \prop_gput:NVn \toptab_cell_heights_prop \l_tmpa_int { ##1 }
+    \prop_gput:NVn \toptab_loaded_data \l_tmpa_int { ##1 }
   }
 
-  %% \prop_show:N \toptab_cell_heights_prop
+  %% \prop_show:N \toptab_loaded_data
 }
 
 \cs_new:Nn \toptab_save_data:n {
@@ -63,21 +69,19 @@
 }
 
 \cs_new:Nn \toptab_exit:n {
-  \SetupConsumable
-  \prop_show:N \toptab_cur_table_computed_heights
+  \toptab_compute_data:
+  %% \prop_show:N \toptab_cur_table_computed_heights
   \toptab_save_data:n {test}
 }
 
-\int_new:N \toptab_col_idx_int
-
 \cs_new:Nn \toptab_set_to_current_cell_height:n {
-  \prop_get:NVNTF \toptab_cell_heights_prop \toptab_col_idx_int \l_tmpa_tl {
+  \prop_get:NVNTF \toptab_loaded_data \toptab_col_idx_int \l_tmpa_tl {
     \clist_set:NV \l_tmpa_clist \l_tmpa_tl
   } {
     \clist_clear:N \l_tmpa_clist
   }
   \clist_pop:NNTF \l_tmpa_clist \l_tmpb_tl {} { \tl_set:Nn \l_tmpb_tl { 1 } }
-  \prop_gput:NVV \toptab_cell_heights_prop \toptab_col_idx_int \l_tmpa_clist
+  \prop_gput:NVV \toptab_loaded_data \toptab_col_idx_int \l_tmpa_clist
   \int_set:Nn { #1 } \l_tmpb_tl
 }
 
@@ -134,15 +138,18 @@
   }
 }
 
-\cs_new:Npn \SetupConsumable {
+\cs_new:Nn \toptab_compute_data: {
   %% \prop_show:N \toptab_cur_table_row_spans
   %% \prop_show:N \toptab_cur_table_computed_heights
 
-
-  \prop_map_inline:Nn \toptab_cur_table_row_spans {
-    % TODO: order not guaranteed here
-    \tl_set:Nn \l_tmpa_tl {##1}
-    \clist_set:Nn \l_tmpa_clist {##2}
+  \int_step_inline:nnnn { 1 } { 1 } { \toptab_col_idx_int } {
+    \prop_get:NnNTF \toptab_cur_table_row_spans { ##1 } \l_tmpb_tl {
+      \clist_set:NV \l_tmpa_clist \l_tmpb_tl
+    } {
+      \clist_set:NV \l_tmpa_clist \c_empty_clist
+    }
+    %% \tl_show:N \l_tmpa_tl
+    %% \clist_show:N \l_tmpa_clist
     \clist_reverse:N \l_tmpa_clist
     % empty tmp list
     \clist_gclear:N \l_tmpb_clist
@@ -158,8 +165,8 @@
     \clist_reverse:N \l_tmpb_clist
     \clist_gput_right:Nx \toptab_cur_table_computed_heights {{\l_tmpb_clist}}
   }
-  %% \prop_show:N \toptab_cur_table_row_spans
-  \clist_show:N \toptab_cur_table_computed_heights
+
+  %% \clist_show:N \toptab_cur_table_computed_heights
 }
 
 
@@ -168,8 +175,13 @@
 }
 
 \newcounter{toptab_col_idx_int}
-\newcolumntype{T}{>{\int_gincr:N \toptab_col_idx_int}}
-\newcolumntype{F}{>{\int_gset:Nn \toptab_col_idx_int {1}}}
+\newcolumntype{T}{>{%
+    \int_gincr:N \toptab_col_idx_int
+    %% \int_compare:nNnTF { \toptab_col_idx_int } { > } { \toptab_col_tot_int }
+}}
+\newcolumntype{F}{>{%
+    \int_gset:Nn \toptab_col_idx_int {1}
+}}
 
 \DeclareExpandableDocumentCommand{\Tcline}{m}{
   \noalign{\CLINE_split:n { #1 } }
@@ -177,12 +189,15 @@
 
 \cs_new_protected:Nn \CLINE_split:n {
   \clist_clear:N \l_tmpb_clist
-  \prop_map_inline:Nn \toptab_cell_heights_prop {
+  \prop_map_inline:Nn \toptab_loaded_data {
     \tl_set:Nn \l_tmpa_tl {##1}
     % get first element as integer A
     \clist_set:Nn \l_tmpa_clist {##2}
-    \clist_pop:NN \l_tmpa_clist \l_tmpb_tl
-    \int_set:Nn \l_tmpa_int \l_tmpb_tl
+    \clist_pop:NNTF \l_tmpa_clist \l_tmpb_tl {
+      \int_set:Nn \l_tmpa_int \l_tmpb_tl
+    } {
+      \int_set_eq:NN \l_tmpa_int \c_one
+    }
     % if integer A is zero, skip
     \int_compare:nNnTF { \l_tmpa_int } { = } { 0 } {} {
       \clist_gpush:NV \l_tmpb_clist \l_tmpa_tl

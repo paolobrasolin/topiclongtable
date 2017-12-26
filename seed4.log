@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.9.29)  26 DEC 2017 17:08
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.9.29)  26 DEC 2017 18:07
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -301,33 +301,34 @@ Package: xparse 2017/11/14 L3 Experimental document command parser
 \l__xparse_v_nesting_int=\count186
 )
 \toptab_col_idx_int=\count187
+\toptab_col_tot_int=\count188
 .................................................
 . LaTeX info: "xparse/define-command"
 . 
-. Defining command \Topic with sig. 'o' on line 168.
+. Defining command \Topic with sig. 'o' on line 175.
 .................................................
-\c@toptab_col_idx_int=\count188
+\c@toptab_col_idx_int=\count189
 .................................................
 . LaTeX info: "xparse/define-command"
 . 
-. Defining command \Tcline with sig. 'm' on line 176.
+. Defining command \Tcline with sig. 'm' on line 188.
 .................................................
 
 (./seed4.aux)
 \openout1 = `seed4.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 204.
-LaTeX Font Info:    ... okay on input line 204.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 204.
-LaTeX Font Info:    ... okay on input line 204.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 204.
-LaTeX Font Info:    ... okay on input line 204.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 204.
-LaTeX Font Info:    ... okay on input line 204.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 204.
-LaTeX Font Info:    ... okay on input line 204.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 204.
-LaTeX Font Info:    ... okay on input line 204.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 219.
+LaTeX Font Info:    ... okay on input line 219.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 219.
+LaTeX Font Info:    ... okay on input line 219.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 219.
+LaTeX Font Info:    ... okay on input line 219.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 219.
+LaTeX Font Info:    ... okay on input line 219.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 219.
+LaTeX Font Info:    ... okay on input line 219.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 219.
+LaTeX Font Info:    ... okay on input line 219.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -365,24 +366,6 @@ LaTeX Font Info:    ... okay on input line 204.
 
 \AtBeginShipoutBox=\box46
 \g__file_internal_ior=\read1
-The comma list \toptab_cur_table_computed_heights contains the items (without
-outer braces):
->  {3,0,0,4,0,0,0}
->  {2,0,1,1,2,0,1}
->  {1,1,1,1,2,0,1}.
-<recently read> }
-                 
-l.219 \toptab_exit:n {TAB1}
-                           
-? 
-The property list \toptab_cur_table_computed_heights contains the pairs
-(without outer braces):
-> .
-<recently read> }
-                 
-l.219 \toptab_exit:n {TAB1}
-                           
-? 
 \g_toptab_stream=\write3
 \openout3 = `test.toptab'.
 
@@ -391,10 +374,10 @@ l.219 \toptab_exit:n {TAB1}
 {/usr/local/texlive/2017basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
 (./seed4.aux) ) 
 Here is how much of TeX's memory you used:
- 9761 strings out of 494437
- 193819 string characters out of 6166645
- 324000 words of memory out of 5000000
- 13104 multiletter control sequences out of 15000+600000
+ 9762 strings out of 494437
+ 193836 string characters out of 6166645
+ 324016 words of memory out of 5000000
+ 13105 multiletter control sequences out of 15000+600000
  530572 words of font info for 23 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
  35i,5n,32p,10374b,275s stack positions out of 5000i,500n,10000p,200000b,80000s
