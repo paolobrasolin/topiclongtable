@@ -1,0 +1,221 @@
+\documentclass[11pt]{article}
+\usepackage{lipsum} % for dummy text only
+\usepackage{longtable}
+\setlength{\arrayrulewidth}{1.2pt}
+
+\usepackage[
+  paperwidth=3in,
+  paperheight=3in,
+  margin=.5in,
+  showframe
+]{geometry}
+
+\usepackage{zref-abspage}[2010/03/26]
+\usepackage{multirow}
+\usepackage{array}% http://ctan.org/pkg/array
+\usepackage{xparse}
+\usepackage{expl3}
+
+\ExplSyntaxOn
+
+
+\seq_new:N \TopTabStack
+\prop_new:N \TopTabLabels
+
+\prop_new:N \toptab_cur_table_row_spans
+\clist_new:N \toptab_cur_table_computed_heights
+
+\prop_new:N \toptab_cell_heights_prop
+\prop_new:N \toptab_data
+%% \prop_show:N \toptab_cell_heights_prop
+
+\iow_new:N \g_toptab_stream
+
+\cs_new:Nn \toptab_load_data:n {
+  \ior_open:Nn \g_toptab_stream {#1.toptab}
+  \ior_get:NN  \g_toptab_stream \l_tmpa_tl
+  \ior_close:N \g_toptab_stream
+  \l_tmpa_tl
+}
+
+\cs_new:Nn \toptab_init:n {
+  \toptab_load_data:n {seed4}
+  \prop_get:NnN \toptab_data { #1 } \l_tmpa_tl
+  \clist_set:NV \l_tmpa_clist \l_tmpa_tl
+
+  \int_zero:N \l_tmpa_int
+  \clist_map_inline:Nn \l_tmpa_clist {
+    \int_incr:N \l_tmpa_int
+    \prop_gput:NVn \toptab_cell_heights_prop \l_tmpa_int { ##1 }
+  }
+
+  %% \prop_show:N \toptab_cell_heights_prop
+}
+
+\cs_new:Nn \toptab_save_data:n {
+  \iow_open:Nn \g_toptab_stream {#1.toptab}
+  %% \prop_get:NnN \toptab_cur_table_computed_heights { T1 } \l_tmpa_tl
+  %% \clist_set:NV \l_tmpa_clist \l_tmpa_tl
+  \iow_now:Nx \g_toptab_stream {
+    \noexpand\prop_gput:Nnn \noexpand\toptab_data { TAB1 }{ \toptab_cur_table_computed_heights }
+  }
+  \iow_close:N \g_toptab_stream
+}
+
+\cs_new:Nn \toptab_exit:n {
+  \SetupConsumable
+  \prop_show:N \toptab_cur_table_computed_heights
+  \toptab_save_data:n {test}
+}
+
+\int_new:N \toptab_col_idx_int
+
+\cs_new:Nn \toptab_set_to_current_cell_height:n {
+  \prop_get:NVNTF \toptab_cell_heights_prop \toptab_col_idx_int \l_tmpa_tl {
+    \clist_set:NV \l_tmpa_clist \l_tmpa_tl
+  } {
+    \clist_clear:N \l_tmpa_clist
+  }
+  \clist_pop:NNTF \l_tmpa_clist \l_tmpb_tl {} { \tl_set:Nn \l_tmpb_tl { 1 } }
+  \prop_gput:NVV \toptab_cell_heights_prop \toptab_col_idx_int \l_tmpa_clist
+  \int_set:Nn { #1 } \l_tmpb_tl
+}
+
+\cs_new:Nn \toptab_set_topic:nn {
+  % reset stack up until #1
+  \seq_if_in:NnTF \TopTabStack {#1} {
+    \bool_do_until:Nn \l_tmpa_bool {
+      \seq_gpop:NN \TopTabStack \l_tmpa_tl
+      \prop_gpop:NoN \TopTabLabels \l_tmpa_tl \l_tmpb_tl
+      \tl_set:Nn \l_tmpb_tl {#1}
+      \bool_gset:Nn \l_tmpa_bool { \tl_if_eq_p:NN \l_tmpa_tl \l_tmpb_tl }
+    }
+  } {}
+  \prop_get:NVNTF \toptab_cur_table_row_spans \toptab_col_idx_int \l_tmpa_tl {
+    \clist_set:NV \l_tmpa_clist \l_tmpa_tl
+  } {
+    \clist_clear:N \l_tmpa_clist
+  }
+  \clist_push:Nn \l_tmpa_clist { 1 }
+  \prop_gput:NVV \toptab_cur_table_row_spans \toptab_col_idx_int \l_tmpa_clist
+  %%%
+  \toptab_set_to_current_cell_height:n \l_tmpb_int
+  %% [\int_use:N \l_tmpb_int]
+  %%%
+  \seq_gpush:Nn \TopTabStack {#1}
+  \prop_gput:Nnn \TopTabLabels {#1} {#2}
+  %% \prop_item:Nn \TopTabLabels {#1}
+  \multirow{\int_use:N \l_tmpb_int}{*}{\prop_item:Nn \TopTabLabels {#1}}
+}
+
+\msg_new:nnnn {tabloid} {invalid-index} {
+  You~tried~to~use~an~uninitialized~topic~index~\msg_line_context:.
+} {TODO}
+
+\cs_new:Nn \toptab_get_topic:n {
+  \seq_if_in:NnTF \TopTabStack {#1} {
+    \prop_get:NVNTF \toptab_cur_table_row_spans \toptab_col_idx_int \l_tmpa_tl {
+      \clist_set:NV \l_tmpa_clist \l_tmpa_tl
+    } {
+      \ERROR
+    }
+    \clist_pop:NN \l_tmpa_clist \l_tmpa_tl
+    \int_set:Nn \l_tmpa_int \l_tmpa_tl
+    \int_incr:N \l_tmpa_int
+    \clist_push:NV \l_tmpa_clist \l_tmpa_int
+    \prop_gput:NVV \toptab_cur_table_row_spans \toptab_col_idx_int \l_tmpa_clist
+    %%%
+    \toptab_set_to_current_cell_height:n \l_tmpb_int
+    %% [\int_use:N \l_tmpb_int]
+    %%%
+    %% \prop_item:Nn \TopTabLabels {#1}
+  } {
+    \msg_error:nn {tabloid} {invalid-index}
+  }
+}
+
+\cs_new:Npn \SetupConsumable {
+  %% \prop_show:N \toptab_cur_table_row_spans
+  %% \prop_show:N \toptab_cur_table_computed_heights
+
+
+  \prop_map_inline:Nn \toptab_cur_table_row_spans {
+    % TODO: order not guaranteed here
+    \tl_set:Nn \l_tmpa_tl {##1}
+    \clist_set:Nn \l_tmpa_clist {##2}
+    \clist_reverse:N \l_tmpa_clist
+    % empty tmp list
+    \clist_gclear:N \l_tmpb_clist
+    \clist_map_inline:Nn \l_tmpa_clist {
+      % store column index
+      \int_set:Nn \l_tmpa_int { ####1 }
+      \clist_gpush:NV \l_tmpb_clist \l_tmpa_int
+      \int_while_do:nNnn { \l_tmpa_int } { > } { 1 } {
+        \clist_gpush:Nn \l_tmpb_clist { 0 }
+        \int_gdecr:N \l_tmpa_int
+      }
+    }
+    \clist_reverse:N \l_tmpb_clist
+    \clist_gput_right:Nx \toptab_cur_table_computed_heights {{\l_tmpb_clist}}
+  }
+  %% \prop_show:N \toptab_cur_table_row_spans
+  \clist_show:N \toptab_cur_table_computed_heights
+}
+
+
+\NewDocumentCommand{\Topic}{o}{%
+  \IfValueTF{#1}{\toptab_set_topic:nn{\SCol}{#1}}{\toptab_get_topic:n{\SCol}}%
+}
+
+\newcounter{toptab_col_idx_int}
+\newcolumntype{T}{>{\int_gincr:N \toptab_col_idx_int}}
+\newcolumntype{F}{>{\int_gset:Nn \toptab_col_idx_int {1}}}
+
+\DeclareExpandableDocumentCommand{\Tcline}{m}{
+  \noalign{\CLINE_split:n { #1 } }
+}
+
+\cs_new_protected:Nn \CLINE_split:n {
+  \clist_clear:N \l_tmpb_clist
+  \prop_map_inline:Nn \toptab_cell_heights_prop {
+    \tl_set:Nn \l_tmpa_tl {##1}
+    % get first element as integer A
+    \clist_set:Nn \l_tmpa_clist {##2}
+    \clist_pop:NN \l_tmpa_clist \l_tmpb_tl
+    \int_set:Nn \l_tmpa_int \l_tmpb_tl
+    % if integer A is zero, skip
+    \int_compare:nNnTF { \l_tmpa_int } { = } { 0 } {} {
+      \clist_gpush:NV \l_tmpb_clist \l_tmpa_tl
+    }
+  }
+
+  %% \clist_show:N \l_tmpb_clist
+  \clist_sort:Nn \l_tmpb_clist {
+    \int_compare:nNnTF { ##1 } { > } { ##2 } { \sort_return_swapped: } { \sort_return_same: }
+  }
+  \clist_pop:NNTF \l_tmpb_clist \l_tmpb_tl {} { \tl_set:Nn \l_tmpb_tl { 4 } }
+
+  \tl_gset:Nx \g_tmpa_tl { \noexpand\cline{\l_tmpb_tl-#1} }
+  \group_insert_after:N \g_tmpa_tl
+}
+
+%% \ExplSyntaxOff
+
+\begin{document}
+
+\toptab_init:n {TAB1}
+
+\begin{longtable}{|Fl|Tl|Tl|Tl|}       
+ \Tcline{4} \Topic[T1] & \Topic[ST1] & \Topic[SST1] & A \\
+ \Tcline{4} \Topic     & \Topic      & \Topic[SST2] & B \\ 
+ \Tcline{4} \Topic     & \Topic[ST2] & \Topic[SST3] & C \\ 
+ \Tcline{4} \Topic[T2] & \Topic[ST3] & \Topic[SST4] & D \\ 
+ \Tcline{4} \Topic     & \Topic[ST4] & \Topic[SST5] & E \\ 
+ \Tcline{4} \Topic     & \Topic      & \Topic       & F \\
+ \Tcline{4} \Topic     & \Topic[ST5] & \Topic[SST6] & F \\
+ \hline
+\end{longtable}
+
+\toptab_exit:n {TAB1}
+
+\end{document}
