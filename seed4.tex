@@ -37,41 +37,46 @@
 
 \iow_new:N \g_toptab_stream
 
-\cs_new:Nn \toptab_load_data:n {
-  \ior_open:Nn \g_toptab_stream {#1.toptab}
-  \ior_get:NN  \g_toptab_stream \l_tmpa_tl
-  \ior_close:N \g_toptab_stream
-  \l_tmpa_tl
+\cs_new:Nn \toptab_init: {
+  %% load computed data if it exists
+  \tl_set:Nn \l_tmpa_tl { \c_sys_jobname_str.toptab }
+  \file_if_exist:nTF { \l_tmpa_tl } {
+    \ior_open:Nn \g_toptab_stream { \l_tmpa_tl }
+    \ior_get:NN \g_toptab_stream \l_tmpb_tl
+    \ior_close:N \g_toptab_stream
+    \l_tmpb_tl
+  } {
+    %% TODO: log message
+  }
+  %% leave an open stream to dump computed data
+  \iow_open:Nn \g_toptab_stream { \c_sys_jobname_str.toptab }
 }
 
-\cs_new:Nn \toptab_init:n {
-  \toptab_load_data:n {seed4}
-  \prop_get:NnN \toptab_data { #1 } \l_tmpa_tl
-  \clist_set:NV \l_tmpa_clist \l_tmpa_tl
-
+\cs_new:Nn \toptab_init_table:n {
+  %% fetch serialized data (clist of clists) from loaded prop 
+  \prop_get:NnNTF \toptab_data { #1 } \l_tmpa_tl {
+    \clist_set:NV \l_tmpa_clist \l_tmpa_tl
+  } {
+    \clist_set_eq:NN \l_tmpa_clist \c_empty_clist
+  }
+  %% transform clist in indexed prop (ease of access)
   \int_zero:N \l_tmpa_int
   \clist_map_inline:Nn \l_tmpa_clist {
     \int_incr:N \l_tmpa_int
     \prop_gput:NVn \toptab_loaded_data \l_tmpa_int { ##1 }
   }
-
   %% \prop_show:N \toptab_loaded_data
 }
 
-\cs_new:Nn \toptab_save_data:n {
-  \iow_open:Nn \g_toptab_stream {#1.toptab}
-  %% \prop_get:NnN \toptab_cur_table_computed_heights { T1 } \l_tmpa_tl
-  %% \clist_set:NV \l_tmpa_clist \l_tmpa_tl
+\cs_new:Nn \toptab_exit_table:n {
+  \toptab_compute_data:
   \iow_now:Nx \g_toptab_stream {
-    \noexpand\prop_gput:Nnn \noexpand\toptab_data { TAB1 }{ \toptab_cur_table_computed_heights }
+    \noexpand\prop_gput:Nnn \noexpand\toptab_data { #1 }{ \toptab_cur_table_computed_heights }
   }
-  \iow_close:N \g_toptab_stream
 }
 
-\cs_new:Nn \toptab_exit:n {
-  \toptab_compute_data:
-  %% \prop_show:N \toptab_cur_table_computed_heights
-  \toptab_save_data:n {test}
+\cs_new:Nn \toptab_exit: {
+  \iow_close:N \g_toptab_stream
 }
 
 \cs_new:Nn \toptab_set_to_current_cell_height:n {
@@ -218,7 +223,8 @@
 
 \begin{document}
 
-\toptab_init:n {TAB1}
+\toptab_init:
+\toptab_init_table:n {TAB1}
 
 \begin{longtable}{|Fl|Tl|Tl|Tl|}       
  \Tcline{4} \Topic[T1] & \Topic[ST1] & \Topic[SST1] & A \\
@@ -231,6 +237,7 @@
  \hline
 \end{longtable}
 
-\toptab_exit:n {TAB1}
+\toptab_exit_table:n {TAB1}
+\toptab_exit:
 
 \end{document}

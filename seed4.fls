@@ -74,7 +74,8 @@ INPUT seed4.aux
 OUTPUT seed4.aux
 INPUT seed4.toptab
 INPUT seed4.toptab
-OUTPUT test.toptab
+INPUT seed4.toptab
+OUTPUT seed4.toptab
 OUTPUT seed4.pdf
 INPUT /usr/local/texlive/2017basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map
 INPUT seed4.aux
