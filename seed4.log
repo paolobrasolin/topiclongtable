@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.9.29)  26 DEC 2017 20:16
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.9.29)  26 DEC 2017 21:38
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -305,13 +305,12 @@ Package: xparse 2017/11/14 L3 Experimental document command parser
 .................................................
 . LaTeX info: "xparse/define-command"
 . 
-. Defining command \Topic with sig. 'o' on line 180.
+. Defining command \Topic with sig. 'o' on line 186.
 .................................................
-\c@toptab_col_idx_int=\count189
 .................................................
 . LaTeX info: "xparse/define-command"
 . 
-. Defining command \Tcline with sig. 'm' on line 193.
+. Defining command \TopicLine with sig. 'm' on line 193.
 .................................................
 
 (./seed4.aux)
@@ -369,21 +368,30 @@ LaTeX Font Info:    ... okay on input line 224.
 \g_toptab_stream=\write3
 \openout3 = `seed4.toptab'.
 
+The property list \toptab_data contains the pairs (without outer braces):
+>  {TAB0}  =>  {}
+>  {TAB1}  =>  {{3,0,0,5,0,0,0,0},{2,0,1,1,2,0,2,0},{1,1,1,1,2,0,2,0},{}}
+>  {TAB2}  =>  {}.
+<recently read> }
+                 
+l.228 \prop_show:N \toptab_data
+                               
+? 
 [1
 
 {/usr/local/texlive/2017basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
 (./seed4.aux) ) 
 Here is how much of TeX's memory you used:
- 9761 strings out of 494437
- 193832 string characters out of 6166645
- 324016 words of memory out of 5000000
- 13105 multiletter control sequences out of 15000+600000
+ 9758 strings out of 494437
+ 193762 string characters out of 6166645
+ 323939 words of memory out of 5000000
+ 13102 multiletter control sequences out of 15000+600000
  530572 words of font info for 23 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
  35i,5n,32p,10374b,275s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2017basic/texmf-dist/fonts/type1/public/amsf
 onts/cm/cmr10.pfb>
-Output written on seed4.pdf (1 page, 12507 bytes).
+Output written on seed4.pdf (1 page, 12543 bytes).
 PDF statistics:
  12 PDF objects out of 1000 (max. 8388607)
  7 compressed objects within 1 object stream

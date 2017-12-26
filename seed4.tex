@@ -42,9 +42,8 @@
   \tl_set:Nn \l_tmpa_tl { \c_sys_jobname_str.toptab }
   \file_if_exist:nTF { \l_tmpa_tl } {
     \ior_open:Nn \g_toptab_stream { \l_tmpa_tl }
-    \ior_get:NN \g_toptab_stream \l_tmpb_tl
+    \ior_map_inline:Nn \g_toptab_stream { ##1 }
     \ior_close:N \g_toptab_stream
-    \l_tmpb_tl
   } {
     %% TODO: log message
   }
@@ -65,11 +64,16 @@
     \int_incr:N \l_tmpa_int
     \prop_gput:NVn \toptab_loaded_data \l_tmpa_int { ##1 }
   }
-  %% \prop_show:N \toptab_loaded_data
+  %% reset 
+  \int_gzero:N \toptab_col_idx_int
+  \clist_gset:Nn \toptab_cur_table_computed_heights \c_empty_clist
+  \clist_gset:Nn \toptab_cur_table_row_spans \c_empty_prop
 }
 
 \cs_new:Nn \toptab_exit_table:n {
+  %% compute table data
   \toptab_compute_data:
+  %% dump computed data
   \iow_now:Nx \g_toptab_stream {
     \noexpand\prop_gput:Nnn \noexpand\toptab_data { #1 }{ \toptab_cur_table_computed_heights }
   }
@@ -79,12 +83,14 @@
   \iow_close:N \g_toptab_stream
 }
 
-\cs_new:Nn \toptab_set_to_current_cell_height:n {
+\cs_new:Nn \toptab_calc_cell_height:n {
+  %% get loaded data for current column
   \prop_get:NVNTF \toptab_loaded_data \toptab_col_idx_int \l_tmpa_tl {
     \clist_set:NV \l_tmpa_clist \l_tmpa_tl
   } {
     \clist_clear:N \l_tmpa_clist
   }
+  %% get the first element (if present) and 1 otherwise
   \clist_pop:NNTF \l_tmpa_clist \l_tmpb_tl {} { \tl_set:Nn \l_tmpb_tl { 1 } }
   \prop_gput:NVV \toptab_loaded_data \toptab_col_idx_int \l_tmpa_clist
   \int_set:Nn { #1 } \l_tmpb_tl
@@ -107,13 +113,11 @@
   }
   \clist_push:Nn \l_tmpa_clist { 1 }
   \prop_gput:NVV \toptab_cur_table_row_spans \toptab_col_idx_int \l_tmpa_clist
-  %%%
-  \toptab_set_to_current_cell_height:n \l_tmpb_int
+  \toptab_calc_cell_height:n \l_tmpb_int
   %% [\int_use:N \l_tmpb_int]
-  %%%
   \seq_gpush:Nn \TopTabStack {#1}
   \prop_gput:Nnn \TopTabLabels {#1} {#2}
-  %% \prop_item:Nn \TopTabLabels {#1}
+  %% render the multirow cell
   \multirow{\int_use:N \l_tmpb_int}{*}{\prop_item:Nn \TopTabLabels {#1}}
 }
 
@@ -133,38 +137,41 @@
     \int_incr:N \l_tmpa_int
     \clist_push:NV \l_tmpa_clist \l_tmpa_int
     \prop_gput:NVV \toptab_cur_table_row_spans \toptab_col_idx_int \l_tmpa_clist
-    %%%
-    \toptab_set_to_current_cell_height:n \l_tmpb_int
-    %% [\int_use:N \l_tmpb_int]
-    %%%
-    %% \prop_item:Nn \TopTabLabels {#1}
+    \toptab_calc_cell_height:n \l_tmpb_int
+    %% nothing is rendered here
   } {
     \msg_error:nn {tabloid} {invalid-index}
   }
 }
 
 \cs_new:Nn \toptab_compute_data: {
-  %% \prop_show:N \toptab_cur_table_row_spans
-  %% \prop_show:N \toptab_cur_table_computed_heights
+  %% \prop_show:N \toptab_loaded_data
+  %% \int_show:N \toptab_col_idx_int
 
+  \clist_gclear:N \toptab_cur_table_computed_heights
+  %% iterate over column indices; idx still has the last (maximum) value 
   \int_step_inline:nnnn { 1 } { 1 } { \toptab_col_idx_int } {
+    %% fetch memorized cell spans, ordered from bottom to top
     \prop_get:NnNTF \toptab_cur_table_row_spans { ##1 } \l_tmpb_tl {
       \clist_set:NV \l_tmpa_clist \l_tmpb_tl
     } {
       \clist_set:NV \l_tmpa_clist \c_empty_clist
     }
-    %% \tl_show:N \l_tmpa_tl
-    %% \clist_show:N \l_tmpa_clist
+
+
     \clist_reverse:N \l_tmpa_clist
-    % empty tmp list
-    \clist_gclear:N \l_tmpb_clist
+    %% empty tmp list (for outer step cycle)
+    \clist_clear:N \l_tmpb_clist
+    %% iterate over cell spans
     \clist_map_inline:Nn \l_tmpa_clist {
       % store column index
       \int_set:Nn \l_tmpa_int { ####1 }
-      \clist_gpush:NV \l_tmpb_clist \l_tmpa_int
+      % push full height (n) for first cell of multirow
+      \clist_push:NV \l_tmpb_clist \l_tmpa_int
+      % push n-1 zeroes for the other cells spanned by the multirow
       \int_while_do:nNnn { \l_tmpa_int } { > } { 1 } {
-        \clist_gpush:Nn \l_tmpb_clist { 0 }
-        \int_gdecr:N \l_tmpa_int
+        \clist_push:Nn \l_tmpb_clist { 0 }
+        \int_decr:N \l_tmpa_int
       }
     }
     \clist_reverse:N \l_tmpb_clist
@@ -174,21 +181,14 @@
   %% \clist_show:N \toptab_cur_table_computed_heights
 }
 
-
 \NewDocumentCommand{\Topic}{o}{%
   \IfValueTF{#1}{\toptab_set_topic:nn{\SCol}{#1}}{\toptab_get_topic:n{\SCol}}%
 }
 
-\newcounter{toptab_col_idx_int}
-\newcolumntype{T}{>{%
-    \int_gincr:N \toptab_col_idx_int
-    %% \int_compare:nNnTF { \toptab_col_idx_int } { > } { \toptab_col_tot_int }
-}}
-\newcolumntype{F}{>{%
-    \int_gset:Nn \toptab_col_idx_int {1}
-}}
+\newcolumntype{T}{>{\int_gincr:N \toptab_col_idx_int}}
+\newcolumntype{F}{>{\int_gset:Nn \toptab_col_idx_int {1}}}
 
-\DeclareExpandableDocumentCommand{\Tcline}{m}{
+\DeclareExpandableDocumentCommand{\TopicLine}{m}{
   \noalign{\CLINE_split:n { #1 } }
 }
 
@@ -224,20 +224,31 @@
 \begin{document}
 
 \toptab_init:
+
+\prop_show:N \toptab_data
+
+\toptab_init_table:n {TAB0}
+\toptab_exit_table:n {TAB0}
+
 \toptab_init_table:n {TAB1}
 
 \begin{longtable}{|Fl|Tl|Tl|Tl|}       
- \Tcline{4} \Topic[T1] & \Topic[ST1] & \Topic[SST1] & A \\
- \Tcline{4} \Topic     & \Topic      & \Topic[SST2] & B \\ 
- \Tcline{4} \Topic     & \Topic[ST2] & \Topic[SST3] & C \\ 
- \Tcline{4} \Topic[T2] & \Topic[ST3] & \Topic[SST4] & D \\ 
- \Tcline{4} \Topic     & \Topic[ST4] & \Topic[SST5] & E \\ 
- \Tcline{4} \Topic     & \Topic      & \Topic       & F \\
- \Tcline{4} \Topic     & \Topic[ST5] & \Topic[SST6] & F \\
+ \TopicLine{4} \Topic[T1] & \Topic[ST1] & \Topic[SST1] & A \\
+ \TopicLine{4} \Topic     & \Topic      & \Topic[SST2] & B \\ 
+ \TopicLine{4} \Topic     & \Topic[ST2] & \Topic[SST3] & C \\ 
+ \TopicLine{4} \Topic[T2] & \Topic[ST3] & \Topic[SST4] & D \\ 
+ \TopicLine{4} \Topic     & \Topic[ST4] & \Topic[SST5] & E \\ 
+ \TopicLine{4} \Topic     & \Topic      & \Topic       & F \\
+ \TopicLine{4} \Topic     & \Topic[ST5] & \Topic[SST6] & F \\
+ \TopicLine{4} \Topic     & \Topic      & \Topic       & F \\
  \hline
 \end{longtable}
 
 \toptab_exit_table:n {TAB1}
+
+\toptab_init_table:n {TAB2}
+\toptab_exit_table:n {TAB2}
+
 \toptab_exit:
 
 \end{document}
