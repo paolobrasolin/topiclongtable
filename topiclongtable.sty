@@ -1,0 +1,371 @@
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{topiclongtable}[2017/01/09 topiclongtable]
+
+%% \DeclareOption{roman}{
+%%   \renewcommand{\familydefault}{\rmdefault}
+%% }
+
+%% %% Global indentation option
+%% \newif\if@neverindent\@neverindentfalse
+%% \DeclareOption{neverindent}{
+%%   \@neverindenttrue
+%% }
+
+%% \ExecuteOptions{roman}
+
+\ProcessOptions\relax
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\RequirePackage{longtable}
+\setlength{\arrayrulewidth}{1.2pt}
+
+\RequirePackage{zref-abspage}
+\RequirePackage{multirow}
+\RequirePackage{array}% http://ctan.org/pkg/array
+\RequirePackage{xparse}
+\RequirePackage{expl3}
+
+\makeatletter
+\ExplSyntaxOn
+
+\seq_new:N \TopTabStack
+\prop_new:N \TopTabLabels
+
+\prop_new:N \toptab_cur_table_row_spans
+\clist_new:N \toptab_cur_table_computed_heights
+
+\prop_new:N \toptab_loaded_data
+\prop_new:N \toptab_data
+\prop_new:N \toptab_data_pages
+
+\bool_new:N \toptab_first_row_of_page
+\bool_new:N \toptab_last_row_of_page
+
+\int_new:N \toptab_row_idx_int
+\int_new:N \toptab_col_idx_int
+\int_new:N \toptab_col_tot_int
+\int_gset:Nn \toptab_col_idx_int {4} % TODO
+
+\iow_new:N \g_toptab_stream
+\tl_new:N \g_toptab_cur_table_id
+
+%% INIT PROCEDURES
+
+%% initialize the document
+\cs_new:Nn \toptab_init: {
+  %% load computed data if it exists
+  \tl_set:Nn \l_tmpa_tl { \c_sys_jobname_str.toptab }
+  \file_if_exist:nTF { \l_tmpa_tl } {
+    \ior_open:Nn \g_toptab_stream { \l_tmpa_tl }
+    \ior_map_inline:Nn \g_toptab_stream { ##1 }
+    \ior_close:N \g_toptab_stream
+  } {
+    %% file was not found - that's ok
+  }
+  %% leave an open stream to dump computed data
+  \iow_open:Nn \g_toptab_stream { \c_sys_jobname_str.toptab }
+}
+
+%% initialize a given table
+\cs_new:Nn \toptab_init_table:n {
+  %% fetch serialized data (clist of clists) if found,
+  %% initialize an empty list otherwise
+  %% NOTE: \toptab_data is defined in the (generated) *.toptab file
+  \prop_get:NnNTF \toptab_data { #1 } \l_tmpa_tl {
+    \clist_set:NV \l_tmpa_clist \l_tmpa_tl
+  } {
+    \clist_set_eq:NN \l_tmpa_clist \c_empty_clist
+  }
+  %% transform clist into indexed prop for ease of access
+  \int_zero:N \l_tmpa_int
+  \clist_map_inline:Nn \l_tmpa_clist {
+    \int_incr:N \l_tmpa_int
+    \prop_gput:NVn \toptab_loaded_data \l_tmpa_int { ##1 }
+  }
+  %% reset counters and table variables
+  \int_gzero:N \toptab_col_idx_int
+  \int_gzero:N \toptab_row_idx_int
+  \clist_gset:Nn \toptab_cur_table_computed_heights \c_empty_clist
+  \clist_gset:Nn \toptab_cur_table_row_spans \c_empty_clist
+}
+
+\cs_generate_variant:Nn \toptab_init_table:n { V }
+
+%% EXIT PROCEDURES
+
+%% we need to load data through an ordinary macro as at load time we won't have expl3
+\DeclareExpandableDocumentCommand{\TopTabSetDataRow}{mm}{
+  \prop_gput:Nnn \toptab_data { #1 }{ #2 }
+}
+
+%% finalize a given table
+\cs_new:Nn \toptab_exit_table:n {
+  %% compute table data
+  \toptab_compute_data:
+  %% dump computed data
+  \iow_now:Nx \g_toptab_stream {
+    \noexpand\TopTabSetDataRow { #1 }{ \toptab_cur_table_computed_heights }
+  }
+}
+
+\cs_generate_variant:Nn \toptab_exit_table:n { V }
+
+%% finalize document
+\cs_new:Nn \toptab_exit: {
+  %% close the output stream
+  \iow_close:N \g_toptab_stream
+}
+
+%%
+
+\cs_new:Nn \toptab_calc_cell_height:n {
+  %% get loaded data for current column
+  \prop_get:NVNTF \toptab_loaded_data \toptab_col_idx_int \l_tmpa_tl {
+    \clist_set:NV \l_tmpa_clist \l_tmpa_tl
+  } {
+    \clist_clear:N \l_tmpa_clist
+  }
+  %% get the first element (if present) and 1 otherwise
+  \clist_pop:NNTF \l_tmpa_clist \l_tmpb_tl {} { \tl_set:Nn \l_tmpb_tl { 1 } }
+  \prop_gput:NVV \toptab_loaded_data \toptab_col_idx_int \l_tmpa_clist
+  \int_set:Nn { #1 } \l_tmpb_tl
+}
+
+\msg_new:nnnn {tabloid} {invalid-index} {
+  You~tried~to~use~an~uninitialized~topic~index~\msg_line_context:.
+} {TODO}
+
+\cs_new:Nn \mark_new_topic:nn {
+  % reset stack up until #1
+  \seq_if_in:NnTF \TopTabStack {#1} {
+    \bool_do_until:Nn \l_tmpa_bool {
+      \seq_gpop:NN \TopTabStack \l_tmpa_tl
+      \prop_gpop:NoN \TopTabLabels \l_tmpa_tl \l_tmpb_tl
+      \tl_set:Nn \l_tmpb_tl {#1}
+      \bool_gset:Nn \l_tmpa_bool { \tl_if_eq_p:NN \l_tmpa_tl \l_tmpb_tl }
+    }
+  } {}
+
+  \prop_get:NVNTF \toptab_cur_table_row_spans \toptab_col_idx_int \l_tmpa_tl {
+    \clist_set:NV \l_tmpa_clist \l_tmpa_tl
+  } {
+    \clist_clear:N \l_tmpa_clist
+  }
+  \clist_push:Nn \l_tmpa_clist { 1 }
+  \prop_gput:NVV \toptab_cur_table_row_spans \toptab_col_idx_int \l_tmpa_clist
+  \toptab_calc_cell_height:n \l_tmpb_int
+  \seq_gpush:Nn \TopTabStack {#1}
+  \prop_gput:Nnn \TopTabLabels {#1} {#2}
+  %% render the multirow cell
+  %% \int_use:N \l_tmpb_int
+  \multirow{\int_use:N \l_tmpb_int}{*}{\prop_item:Nn \TopTabLabels {#1}}
+}
+
+\cs_new:Nn \mark_old_topic: {
+  \prop_get:NVNTF \toptab_cur_table_row_spans \toptab_col_idx_int \l_tmpa_tl {
+    \clist_set:NV \l_tmpa_clist \l_tmpa_tl
+  } {
+    \ERROR
+  }
+  
+  \on_first_row_of_page:N \l_tmpa_bool
+  \bool_if:NTF \l_tmpa_bool {
+      \prop_get:NVNTF \toptab_cur_table_row_spans \toptab_col_idx_int \l_tmpa_tl {
+        \clist_set:NV \l_tmpa_clist \l_tmpa_tl
+      } {
+        \clist_clear:N \l_tmpa_clist
+      }
+      \clist_push:Nn \l_tmpa_clist { 1 }
+      \prop_gput:NVV \toptab_cur_table_row_spans \toptab_col_idx_int \l_tmpa_clist
+      \toptab_calc_cell_height:n \l_tmpb_int
+      %% \seq_gpush:Nn \TopTabStack {#1}
+      %% \prop_gput:Nnn \TopTabLabels {#1} {#2}
+      %% render the multirow cell
+      %% \int_use:N \l_tmpb_int
+      \multirow{\int_use:N \l_tmpb_int}{*}{\prop_item:NV \TopTabLabels \toptab_col_idx_int}
+
+    %% \clist_pop:NN \l_tmpa_clist \l_tmpa_tl
+    %% \int_set:Nn \l_tmpa_int \l_tmpa_tl
+    %% \int_incr:N \l_tmpa_int
+    %% \clist_push:NV \l_tmpa_clist \l_tmpa_int
+    %% \prop_gput:NVV \toptab_cur_table_row_spans \toptab_col_idx_int \l_tmpa_clist
+    %% \toptab_calc_cell_height:n \l_tmpb_int
+  } {
+    \clist_pop:NN \l_tmpa_clist \l_tmpa_tl
+    \int_set:Nn \l_tmpa_int \l_tmpa_tl
+    \int_incr:N \l_tmpa_int
+    \clist_push:NV \l_tmpa_clist \l_tmpa_int
+    \prop_gput:NVV \toptab_cur_table_row_spans \toptab_col_idx_int \l_tmpa_clist
+    \toptab_calc_cell_height:n \l_tmpb_int
+    % render nothing
+  }
+}
+
+\cs_new:Nn \toptab_set_topic:nn {
+  \tl_set:Nn \l_tmpa_tl { #2 }
+  \tl_set:Nx \l_tmpb_tl { \prop_item:Nn \TopTabLabels { #1 } }
+  \tl_if_eq:NNTF \l_tmpa_tl \l_tmpb_tl
+  { \toptab_get_topic:n { #1 } }
+  { \mark_new_topic:nn {#1} {#2} }
+}
+
+\cs_new:Nn \toptab_get_topic:n {
+  \seq_if_in:NnTF \TopTabStack {#1} {
+    \mark_old_topic:
+  } {
+    \msg_error:nn {tabloid} {invalid-index}
+  }
+}
+
+\cs_generate_variant:Nn \toptab_get_topic:n { V }
+\cs_generate_variant:Nn \toptab_set_topic:nn { Vn }
+
+\cs_generate_variant:Nn \prop_item:Nn { NV }
+
+\cs_new:Nn \toptab_compute_data: {
+  %% \prop_show:N \toptab_loaded_data
+  %% \int_show:N \toptab_col_idx_int
+
+  \clist_gclear:N \toptab_cur_table_computed_heights
+  %% iterate over column indices; idx still has the last (maximum) value 
+  \int_step_inline:nnnn { 1 } { 1 } { \toptab_col_idx_int } {
+    %% fetch memorized cell spans, ordered from bottom to top
+    \prop_get:NnNTF \toptab_cur_table_row_spans { ##1 } \l_tmpb_tl {
+      \clist_set:NV \l_tmpa_clist \l_tmpb_tl
+    } {
+      \clist_set:NV \l_tmpa_clist \c_empty_clist
+    }
+
+
+    \clist_reverse:N \l_tmpa_clist
+    %% empty tmp list (for outer step cycle)
+    \clist_clear:N \l_tmpb_clist
+    %% iterate over cell spans
+    \clist_map_inline:Nn \l_tmpa_clist {
+      % store column index
+      \int_set:Nn \l_tmpa_int { ####1 }
+      % push full height (n) for first cell of multirow
+      \clist_push:NV \l_tmpb_clist \l_tmpa_int
+      % push n-1 zeroes for the other cells spanned by the multirow
+      \int_while_do:nNnn { \l_tmpa_int } { > } { 1 } {
+        \clist_push:Nn \l_tmpb_clist { 0 }
+        \int_decr:N \l_tmpa_int
+      }
+    }
+    \clist_reverse:N \l_tmpb_clist
+    \clist_gput_right:Nx \toptab_cur_table_computed_heights {{\l_tmpb_clist}}
+  }
+
+  %% \clist_show:N \toptab_cur_table_computed_heights
+}
+
+\NewDocumentCommand{\Topic}{o}{%
+  \IfValueTF{#1}{\toptab_set_topic:Vn{\toptab_col_idx_int}{#1}}{\toptab_get_topic:V{\toptab_col_idx_int}}%
+}
+
+\newcolumntype{F}{>{\int_gset:Nn \toptab_col_idx_int {1}}}
+\newcolumntype{T}{>{\int_gincr:N \toptab_col_idx_int}}
+
+\DeclareExpandableDocumentCommand{\TopicLine}{m}{
+  \noalign{ \CLINE_split:n { #1 } }
+  % TODO: is this the correct place? NOTE: METHINKS THIS IS
+  \int_gincr:N \toptab_row_idx_int
+  \tl_set:Nx \l_tmpa_tl {TOPTAB-\theLT@tables-\int_use:N \toptab_row_idx_int}
+  \expandafter\zref@labelbyprops{\tl_use:N \l_tmpa_tl}{abspage}
+}
+
+\cs_new:Nn \is_last_row_of_page:n {
+  % get page of given row
+  \int_set:Nn \l_tmpa_int { #1 }
+  \tl_set:Nx \l_tmpa_tl {TOPTAB-\theLT@tables-\int_use:N \l_tmpa_int}
+  \tl_set:Nx \l_tmpa_tl {\expandafter\zref@extract{\tl_use:N \l_tmpa_tl}{abspage}}
+  % get page of next row
+  \int_incr:N \l_tmpa_int
+  \tl_set:Nx \l_tmpb_tl {TOPTAB-\theLT@tables-\int_use:N \l_tmpa_int}
+  \tl_set:Nx \l_tmpb_tl {\expandafter\zref@extract{\tl_use:N \l_tmpb_tl}{abspage}}
+  % true if different
+  \bool_not_p:n { \tl_if_eq_p:NN \l_tmpa_tl \l_tmpb_tl }
+}
+
+\cs_new:Nn \is_first_row_of_page:n {
+  % get page of given row
+  \int_set:Nn \l_tmpa_int { #1 }
+  \tl_set:Nx \l_tmpa_tl {TOPTAB-\theLT@tables-\int_use:N \l_tmpa_int}
+  \tl_set:Nx \l_tmpa_tl {\expandafter\zref@extract{\tl_use:N \l_tmpa_tl}{abspage}}
+  % get page of prev row
+  \int_decr:N \l_tmpa_int
+  \tl_set:Nx \l_tmpb_tl {TOPTAB-\theLT@tables-\int_use:N \l_tmpa_int}
+  \tl_set:Nx \l_tmpb_tl {\expandafter\zref@extract{\tl_use:N \l_tmpb_tl}{abspage}}
+  % true if different
+  \bool_set:Nn \l_tmpa_bool { \bool_not_p:n { \tl_if_eq_p:NN \l_tmpa_tl \l_tmpb_tl } }
+  \l_tmpa_bool
+}
+
+\cs_new:Nn \on_first_row_of_page:N {
+  % get page of given row
+  \int_set_eq:NN \l_tmpa_int \toptab_row_idx_int
+  \tl_set:Nx \l_tmpa_tl {TOPTAB-\theLT@tables-\int_use:N \l_tmpa_int}
+  \tl_set:Nx \l_tmpa_tl {\expandafter\zref@extract{\tl_use:N \l_tmpa_tl}{abspage}}
+  % get page of prev row
+  \int_decr:N \l_tmpa_int
+  \tl_set:Nx \l_tmpb_tl {TOPTAB-\theLT@tables-\int_use:N \l_tmpa_int}
+  \tl_set:Nx \l_tmpb_tl {\expandafter\zref@extract{\tl_use:N \l_tmpb_tl}{abspage}}
+  % true if different
+  \bool_set:Nn { #1 } { \bool_not_p:n { \tl_if_eq_p:NN \l_tmpa_tl \l_tmpb_tl } }
+}
+
+\cs_generate_variant:Nn \is_first_row_of_page:n { V }
+\cs_generate_variant:Nn \is_last_row_of_page:n { V }
+
+
+\cs_new_protected:Nn \CLINE_split:n {
+  \clist_clear:N \l_tmpb_clist
+  \prop_map_inline:Nn \toptab_loaded_data {
+    \tl_set:Nn \l_tmpa_tl {##1}
+    % get first element as integer A
+    \clist_set:Nn \l_tmpa_clist {##2}
+    \clist_pop:NNTF \l_tmpa_clist \l_tmpb_tl {
+      \int_set:Nn \l_tmpa_int \l_tmpb_tl
+    } {
+      \int_set_eq:NN \l_tmpa_int \c_one
+    }
+    % if integer A is zero, skip
+    \int_compare:nNnTF { \l_tmpa_int } { = } { 0 } {} {
+      \clist_gpush:NV \l_tmpb_clist \l_tmpa_tl
+    }
+  }
+  %% \clist_show:N \l_tmpb_clist
+  \clist_sort:Nn \l_tmpb_clist {
+    \int_compare:nNnTF { ##1 } { > } { ##2 } { \sort_return_swapped: } { \sort_return_same: }
+  }
+  \clist_pop:NNTF \l_tmpb_clist \l_tmpb_tl {} { \tl_set:Nn \l_tmpb_tl { 4 } }
+
+  \tl_gset:Nx \g_tmpa_tl { \noexpand\cline{\l_tmpb_tl-#1} }
+  \group_insert_after:N \g_tmpa_tl
+}
+
+\NewDocumentEnvironment {topiclongtable} {mm} {%
+  %% set next table id
+  \int_set_eq:NN \l_tmpa_int \theLT@tables
+  \int_incr:N \l_tmpa_int
+  \tl_gset:Nx \g_toptab_cur_table_id {TOPTAB\int_use:N \l_tmpa_int}
+  %% initialize table and open environment
+  \toptab_init_table:V \g_toptab_cur_table_id
+  \begin{longtable}{#1}
+}{
+  %% close environment and finalize table
+  \end{longtable}
+  \toptab_exit_table:V \g_toptab_cur_table_id
+}
+
+\AtBeginDocument{\toptab_init:}
+\AtEndDocument{\toptab_exit:}
+
+\ExplSyntaxOff
+\makeatother
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\endinput
