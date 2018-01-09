@@ -1,33 +1,22 @@
-\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\NeedsTeXFormat{LaTeX2e}%[2017-04-15]
 \ProvidesPackage{topiclongtable}[2017/01/09 topiclongtable]
 
-%% \DeclareOption{roman}{
-%%   \renewcommand{\familydefault}{\rmdefault}
-%% }
-
-%% %% Global indentation option
-%% \newif\if@neverindent\@neverindentfalse
-%% \DeclareOption{neverindent}{
-%%   \@neverindenttrue
-%% }
-
-%% \ExecuteOptions{roman}
-
+%% \DeclareOption{foobar}{}
+%% \ExecuteOptions{foobar}
 \ProcessOptions\relax
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
 \RequirePackage{longtable}
-\setlength{\arrayrulewidth}{1.2pt}
+\RequirePackage{multirow}
+\RequirePackage{array}
 
 \RequirePackage{zref-abspage}
-\RequirePackage{multirow}
-\RequirePackage{array}% http://ctan.org/pkg/array
+
 \RequirePackage{xparse}
 \RequirePackage{expl3}
 
-\makeatletter
+%% \makeatletter
 \ExplSyntaxOn
 
 \seq_new:N \TopTabStack
@@ -346,7 +335,7 @@
   \group_insert_after:N \g_tmpa_tl
 }
 
-\NewDocumentEnvironment {topiclongtable} {mm} {%
+\NewDocumentEnvironment {topiclongtable} {m} {%
   %% set next table id
   \int_set_eq:NN \l_tmpa_int \theLT@tables
   \int_incr:N \l_tmpa_int
@@ -364,7 +353,7 @@
 \AtEndDocument{\toptab_exit:}
 
 \ExplSyntaxOff
-\makeatother
+%% \makeatother
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

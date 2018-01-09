@@ -1,9 +1,9 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.9.29)  9 JAN 2018 23:22
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.9.29)  9 JAN 2018 23:28
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**seed4.tex
-(./seed4.tex
+**sample.tex
+(./sample.tex
 LaTeX2e <2017-04-15>
 Babel <3.10> and hyphenation patterns for 22 language(s) loaded.
 (/usr/local/texlive/2017basic/texmf-dist/tex/latex/base/article.cls
@@ -43,6 +43,21 @@ Package: longtable 2014/10/28 v4.11 Multi-page Table package (DPC)
 \c@LT@tables=\count90
 \c@LT@chunks=\count91
 \LT@p@ftn=\toks14
+)
+(/usr/local/texlive/2017basic/texmf-dist/tex/latex/multirow/multirow.sty
+Package: multirow 2016/11/25 v2.2 Span multiple rows of a table
+\multirow@colwidth=\skip47
+\multirow@cntb=\count92
+\multirow@dima=\skip48
+\bigstrutjot=\dimen104
+)
+(/usr/local/texlive/2017basic/texmf-dist/tex/latex/tools/array.sty
+Package: array 2016/10/06 v2.4d Tabular extension package (FMi)
+\col@sep=\dimen105
+\extrarowheight=\dimen106
+\NC@list=\toks15
+\extratabsurround=\skip49
+\backup@length=\skip50
 )
 (/usr/local/texlive/2017basic/texmf-dist/tex/latex/oberdiek/zref-abspage.sty
 Package: zref-abspage 2016/05/21 v2.26 Module abspage for zref (HO)
@@ -95,23 +110,8 @@ Package zref Info: New property: page on input line 761.
 (/usr/local/texlive/2017basic/texmf-dist/tex/generic/oberdiek/atbegshi.sty
 Package: atbegshi 2016/06/09 v1.18 At begin shipout hook (HO)
 )
-\c@abspage=\count92
+\c@abspage=\count93
 Package zref Info: New property: abspage on input line 62.
-)
-(/usr/local/texlive/2017basic/texmf-dist/tex/latex/multirow/multirow.sty
-Package: multirow 2016/11/25 v2.2 Span multiple rows of a table
-\multirow@colwidth=\skip47
-\multirow@cntb=\count93
-\multirow@dima=\skip48
-\bigstrutjot=\dimen104
-)
-(/usr/local/texlive/2017basic/texmf-dist/tex/latex/tools/array.sty
-Package: array 2016/10/06 v2.4d Tabular extension package (FMi)
-\col@sep=\dimen105
-\extrarowheight=\dimen106
-\NC@list=\toks15
-\extratabsurround=\skip49
-\backup@length=\skip50
 )
 (/usr/local/texlive/2017basic/texmf-dist/tex/latex/l3packages/xparse/xparse.sty
 (/usr/local/texlive/2017basic/texmf-dist/tex/latex/l3kernel/expl3.sty
@@ -279,22 +279,22 @@ Package: xparse 2017/11/14 L3 Experimental document command parser
 .................................................
 . LaTeX info: "xparse/define-command"
 . 
-. Defining command \TopTabSetDataRow with sig. 'mm' on line 101.
+. Defining command \TopTabSetDataRow with sig. 'mm' on line 90.
 .................................................
 .................................................
 . LaTeX info: "xparse/define-command"
 . 
-. Defining command \Topic with sig. 'o' on line 266.
+. Defining command \Topic with sig. 'o' on line 255.
 .................................................
 .................................................
 . LaTeX info: "xparse/define-command"
 . 
-. Defining command \TopicLine with sig. 'm' on line 277.
+. Defining command \TopicLine with sig. 'm' on line 266.
 .................................................
 .................................................
 . LaTeX info: "xparse/define-environment"
 . 
-. Defining environment 'topiclongtable' with sig. 'mm' on line 361.
+. Defining environment 'topiclongtable' with sig. 'm' on line 350.
 .................................................
 )
 (/usr/local/texlive/2017basic/texmf-dist/tex/latex/geometry/geometry.sty
@@ -324,8 +324,8 @@ Package: ifxetex 2010/09/12 v0.6 Provides ifxetex conditional
 \Gm@layoutvoffset=\dimen145
 \Gm@dimlist=\toks17
 )
-(./seed4.aux)
-\openout1 = `seed4.aux'.
+(./sample.aux)
+\openout1 = `sample.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 12.
 LaTeX Font Info:    ... okay on input line 12.
@@ -342,7 +342,7 @@ LaTeX Font Info:    ... okay on input line 12.
 \AtBeginShipoutBox=\box46
 \g__file_internal_ior=\read1
 \g_toptab_stream=\write3
-\openout3 = `seed4.toptab'.
+\openout3 = `sample.toptab'.
 
 
 *geometry* driver: auto-detecting
@@ -352,7 +352,7 @@ LaTeX Font Info:    ... okay on input line 12.
 * paper: custom
 * layout: <same size as paper>
 * layoutoffset:(h,v)=(0.0pt,0.0pt)
-* modes: showframe 
+* modes: 
 * h-part:(L,W,R)=(36.135pt, 144.54001pt, 36.135pt)
 * v-part:(T,H,B)=(36.135pt, 144.54001pt, 36.135pt)
 * \paperwidth=216.81pt
@@ -382,18 +382,18 @@ LaTeX Font Info:    ... okay on input line 12.
 [1
 
 {/usr/local/texlive/2017basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-[2] [3] [4] (./seed4.aux) ) 
+[2] [3] [4] (./sample.aux) ) 
 Here is how much of TeX's memory you used:
  9633 strings out of 494437
- 192638 string characters out of 6166645
- 232166 words of memory out of 5000000
+ 192647 string characters out of 6166645
+ 232142 words of memory out of 5000000
  12978 multiletter control sequences out of 15000+600000
  530572 words of font info for 23 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 43i,5n,32p,10379b,275s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/local/texlive/2017basic/texmf-dist/fonts/type1
-/public/amsfonts/cm/cmr10.pfb>
-Output written on seed4.pdf (4 pages, 14146 bytes).
+ 43i,5n,32p,10380b,275s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/local/texlive/2017basic/texmf-dist/fonts/type
+1/public/amsfonts/cm/cmr10.pfb>
+Output written on sample.pdf (4 pages, 13880 bytes).
 PDF statistics:
  21 PDF objects out of 1000 (max. 8388607)
  13 compressed objects within 1 object stream
