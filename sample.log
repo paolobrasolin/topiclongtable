@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.9.29)  9 JAN 2018 23:28
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.9.29)  9 JAN 2018 23:45
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -273,28 +273,28 @@ Package: xparse 2017/11/14 L3 Experimental document command parser
 \l__xparse_mandatory_args_int=\count181
 \l__xparse_v_nesting_int=\count182
 )
-\toptab_row_idx_int=\count183
-\toptab_col_idx_int=\count184
-\toptab_col_tot_int=\count185
+\tlt_row_idx_int=\count183
+\tlt_col_idx_int=\count184
+\tlt_col_tot_int=\count185
 .................................................
 . LaTeX info: "xparse/define-command"
 . 
-. Defining command \TopTabSetDataRow with sig. 'mm' on line 90.
-.................................................
-.................................................
-. LaTeX info: "xparse/define-command"
-. 
-. Defining command \Topic with sig. 'o' on line 255.
+. Defining command \TltSetDataRow with sig. 'mm' on line 89.
 .................................................
 .................................................
 . LaTeX info: "xparse/define-command"
 . 
-. Defining command \TopicLine with sig. 'm' on line 266.
+. Defining command \Topic with sig. 'o' on line 254.
+.................................................
+.................................................
+. LaTeX info: "xparse/define-command"
+. 
+. Defining command \TopicLine with sig. '' on line 265.
 .................................................
 .................................................
 . LaTeX info: "xparse/define-environment"
 . 
-. Defining environment 'topiclongtable' with sig. 'm' on line 350.
+. Defining environment 'topiclongtable' with sig. 'mm' on line 351.
 .................................................
 )
 (/usr/local/texlive/2017basic/texmf-dist/tex/latex/geometry/geometry.sty
@@ -341,8 +341,8 @@ LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 12.
 LaTeX Font Info:    ... okay on input line 12.
 \AtBeginShipoutBox=\box46
 \g__file_internal_ior=\read1
-\g_toptab_stream=\write3
-\openout3 = `sample.toptab'.
+\g_tlt_stream=\write3
+\openout3 = `sample.tlt'.
 
 
 *geometry* driver: auto-detecting
@@ -384,16 +384,16 @@ LaTeX Font Info:    ... okay on input line 12.
 {/usr/local/texlive/2017basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
 [2] [3] [4] (./sample.aux) ) 
 Here is how much of TeX's memory you used:
- 9633 strings out of 494437
- 192647 string characters out of 6166645
- 232142 words of memory out of 5000000
- 12978 multiletter control sequences out of 15000+600000
+ 9639 strings out of 494437
+ 192534 string characters out of 6166645
+ 232115 words of memory out of 5000000
+ 12984 multiletter control sequences out of 15000+600000
  530572 words of font info for 23 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
  43i,5n,32p,10380b,275s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2017basic/texmf-dist/fonts/type
 1/public/amsfonts/cm/cmr10.pfb>
-Output written on sample.pdf (4 pages, 13880 bytes).
+Output written on sample.pdf (4 pages, 13941 bytes).
 PDF statistics:
  21 PDF objects out of 1000 (max. 8388607)
  13 compressed objects within 1 object stream

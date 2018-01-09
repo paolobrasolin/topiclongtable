@@ -72,10 +72,10 @@ INPUT /usr/local/texlive/2017basic/texmf-dist/tex/generic/ifxetex/ifxetex.sty
 INPUT sample.aux
 INPUT sample.aux
 OUTPUT sample.aux
-INPUT sample.toptab
-INPUT sample.toptab
-INPUT sample.toptab
-OUTPUT sample.toptab
+INPUT sample.tlt
+INPUT sample.tlt
+INPUT sample.tlt
+OUTPUT sample.tlt
 OUTPUT sample.pdf
 INPUT /usr/local/texlive/2017basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map
 INPUT sample.aux
