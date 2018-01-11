@@ -1,5 +1,5 @@
 \NeedsTeXFormat{LaTeX2e}%[2017-04-15]
-\ProvidesPackage{topiclongtable}[2017/01/09 topiclongtable]
+\ProvidesPackage{topiclongtable}[2017/01/11 topiclongtable]
 
 %% \DeclareOption{foobar}{}
 %% \ExecuteOptions{foobar}
@@ -24,20 +24,28 @@
 \prop_new:N \g_tlt_topics_labels_prop
 
 %% tracks row spans of topics (for computation)
-\prop_new:N \g_rows_spans_prop
+\prop_new:N \g_tlt_rows_spans_prop
 %% holds computed multirow heights (for rendering)
-\clist_new:N \g_multirows_heights_clist
+\clist_new:N \g_tlt_multirows_heights_clist
 
-\prop_new:N \tlt_loaded_data
-\prop_new:N \tlt_data
-\prop_new:N \tlt_data_pages
+%% holds dumped data
+\prop_new:N \g_tlt_raw_data_prop
+%% holds dumped data (parsed for eas of access)
+\prop_new:N \g_tlt_loaded_data_prop
 
-\int_new:N \tlt_row_idx_int
-\int_new:N \tlt_col_idx_int
-\int_new:N \tlt_col_tot_int
+%% hold obvious col/row indices
+\int_new:N \g_tlt_row_idx_int
+\int_new:N \g_tlt_col_idx_int
+\int_new:N \g_tlt_col_tot_int
 
-\iow_new:N \g_tlt_stream
-\tl_new:N \g_tlt_cur_table_id
+%% io stream
+\iow_new:N \g_tlt_stream_iow
+
+%% tracks table index (id)
+\tl_new:N \g_tlt_cur_table_id_tl
+
+%% just a handy helper
+\cs_generate_variant:Nn \prop_item:Nn { NV }
 
 %% INIT PROCEDURES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -46,22 +54,22 @@
   %% load computed data if it exists
   \tl_set:Nn \l_tmpa_tl { \c_sys_jobname_str.tlt }
   \file_if_exist:nTF { \l_tmpa_tl } {
-    \ior_open:Nn \g_tlt_stream { \l_tmpa_tl }
-    \ior_map_inline:Nn \g_tlt_stream { ##1 }
-    \ior_close:N \g_tlt_stream
+    \ior_open:Nn \g_tlt_stream_iow { \l_tmpa_tl }
+    \ior_map_inline:Nn \g_tlt_stream_iow { ##1 }
+    \ior_close:N \g_tlt_stream_iow
   } {
     %% file was not found - that's ok
   }
   %% leave an open stream to dump computed data
-  \iow_open:Nn \g_tlt_stream { \c_sys_jobname_str.tlt }
+  \iow_open:Nn \g_tlt_stream_iow { \c_sys_jobname_str.tlt }
 }
 
 %% initialize a table with given id
 \cs_new:Nn \tlt_init_table:n {
   %% fetch serialized data (clist of clists) if found,
   %% initialize an empty list otherwise
-  %% NOTE: \tlt_data is defined in the (generated) *.tlt file
-  \prop_get:NnNTF \tlt_data { #1 } \l_tmpa_tl {
+  %% NOTE: \g_tlt_raw_data_prop is defined in the (generated) *.tlt file
+  \prop_get:NnNTF \g_tlt_raw_data_prop { #1 } \l_tmpa_tl {
     \clist_set:NV \l_tmpa_clist \l_tmpa_tl
   } {
     \clist_set_eq:NN \l_tmpa_clist \c_empty_clist
@@ -70,13 +78,13 @@
   \int_zero:N \l_tmpa_int
   \clist_map_inline:Nn \l_tmpa_clist {
     \int_incr:N \l_tmpa_int
-    \prop_gput:NVn \tlt_loaded_data \l_tmpa_int { ##1 }
+    \prop_gput:NVn \g_tlt_loaded_data_prop \l_tmpa_int { ##1 }
   }
   %% reset counters and table variables
-  \int_gzero:N \tlt_col_idx_int
-  \int_gzero:N \tlt_row_idx_int
-  \clist_gset:Nn \g_multirows_heights_clist \c_empty_clist
-  \clist_gset:Nn \g_rows_spans_prop \c_empty_clist
+  \int_gzero:N \g_tlt_col_idx_int
+  \int_gzero:N \g_tlt_row_idx_int
+  \clist_gset:Nn \g_tlt_multirows_heights_clist \c_empty_clist
+  \clist_gset:Nn \g_tlt_rows_spans_prop \c_empty_clist
 }
 
 \cs_generate_variant:Nn \tlt_init_table:n { V }
@@ -85,7 +93,7 @@
 
 %% we need to load data through an ordinary macro as at load time we won't have expl3
 \DeclareExpandableDocumentCommand{\TltSetDataRow}{mm}{
-  \prop_gput:Nnn \tlt_data { #1 }{ #2 }
+  \prop_gput:Nnn \g_tlt_raw_data_prop { #1 }{ #2 }
 }
 
 %% finalize a given table
@@ -93,8 +101,8 @@
   %% compute table data
   \tlt_compute_data:
   %% dump computed data
-  \iow_now:Nx \g_tlt_stream {
-    \noexpand\TltSetDataRow { #1 }{ \g_multirows_heights_clist }
+  \iow_now:Nx \g_tlt_stream_iow {
+    \noexpand\TltSetDataRow { #1 }{ \g_tlt_multirows_heights_clist }
   }
 }
 
@@ -103,28 +111,27 @@
 %% finalize document
 \cs_new:Nn \tlt_exit: {
   %% close the output stream
-  \iow_close:N \g_tlt_stream
+  \iow_close:N \g_tlt_stream_iow
 }
 
-%%
+%% MULTIROW HEIGHT FETCHING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \cs_new:Nn \tlt_calc_cell_height:n {
   %% get loaded data for current column
-  \prop_get:NVNTF \tlt_loaded_data \tlt_col_idx_int \l_tmpa_tl {
+  \prop_get:NVNTF \g_tlt_loaded_data_prop \g_tlt_col_idx_int \l_tmpa_tl {
     \clist_set:NV \l_tmpa_clist \l_tmpa_tl
   } {
     \clist_clear:N \l_tmpa_clist
   }
   %% get the first element (if present) and 1 otherwise
   \clist_pop:NNTF \l_tmpa_clist \l_tmpb_tl {} { \tl_set:Nn \l_tmpb_tl { 1 } }
-  \prop_gput:NVV \tlt_loaded_data \tlt_col_idx_int \l_tmpa_clist
+  \prop_gput:NVV \g_tlt_loaded_data_prop \g_tlt_col_idx_int \l_tmpa_clist
   \int_set:Nn { #1 } \l_tmpb_tl
 }
 
-\msg_new:nnnn {tabloid} {invalid-index} {
-  You~tried~to~use~an~uninitialized~topic~index~\msg_line_context:.
-} {TODO}
+%% TOPICS BOOKKEEPING AND RENDERING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%% internal used to mark/render new topic
 \cs_new:Nn \mark_new_topic:nn {
   % reset stack up until #1
   \seq_if_in:NnTF \g_tlt_topics_stack_seq {#1} {
@@ -135,61 +142,68 @@
       \bool_gset:Nn \l_tmpa_bool { \tl_if_eq_p:NN \l_tmpa_tl \l_tmpb_tl }
     }
   } {}
-
-  \prop_get:NVNTF \g_rows_spans_prop \tlt_col_idx_int \l_tmpa_tl {
+  \prop_get:NVNTF \g_tlt_rows_spans_prop \g_tlt_col_idx_int \l_tmpa_tl {
     \clist_set:NV \l_tmpa_clist \l_tmpa_tl
   } {
     \clist_clear:N \l_tmpa_clist
   }
   \clist_push:Nn \l_tmpa_clist { 1 }
-  \prop_gput:NVV \g_rows_spans_prop \tlt_col_idx_int \l_tmpa_clist
+  \prop_gput:NVV \g_tlt_rows_spans_prop \g_tlt_col_idx_int \l_tmpa_clist
   \tlt_calc_cell_height:n \l_tmpb_int
   \seq_gpush:Nn \g_tlt_topics_stack_seq {#1}
   \prop_gput:Nnn \g_tlt_topics_labels_prop {#1} {#2}
-  %% render the multirow cell
-  %% \int_use:N \l_tmpb_int
+  % render the multirow
   \multirow{\int_use:N \l_tmpb_int}{*}{\prop_item:Nn \g_tlt_topics_labels_prop {#1}}
 }
 
+%% internal used to mark/render reappearing topic
 \cs_new:Nn \mark_old_topic: {
-  \prop_get:NVNTF \g_rows_spans_prop \tlt_col_idx_int \l_tmpa_tl {
+  \prop_get:NVNTF \g_tlt_rows_spans_prop \g_tlt_col_idx_int \l_tmpa_tl {
     \clist_set:NV \l_tmpa_clist \l_tmpa_tl
   } {
-    \ERROR
+    \ERROR %% unreachable by user by definition
   }
   
   \on_first_row_of_page:N \l_tmpa_bool
   \bool_if:NTF \l_tmpa_bool {
-      \prop_get:NVNTF \g_rows_spans_prop \tlt_col_idx_int \l_tmpa_tl {
+      \prop_get:NVNTF \g_tlt_rows_spans_prop \g_tlt_col_idx_int \l_tmpa_tl {
         \clist_set:NV \l_tmpa_clist \l_tmpa_tl
       } {
         \clist_clear:N \l_tmpa_clist
       }
       \clist_push:Nn \l_tmpa_clist { 1 }
-      \prop_gput:NVV \g_rows_spans_prop \tlt_col_idx_int \l_tmpa_clist
+      \prop_gput:NVV \g_tlt_rows_spans_prop \g_tlt_col_idx_int \l_tmpa_clist
       \tlt_calc_cell_height:n \l_tmpb_int
       %% \seq_gpush:Nn \g_tlt_topics_stack_seq {#1}
       %% \prop_gput:Nnn \g_tlt_topics_labels_prop {#1} {#2}
       %% render the multirow cell
       %% \int_use:N \l_tmpb_int
-      \multirow{\int_use:N \l_tmpb_int}{*}{\prop_item:NV \g_tlt_topics_labels_prop \tlt_col_idx_int}
-
+      % render multirow
+      \multirow{\int_use:N \l_tmpb_int}{*}{\prop_item:NV \g_tlt_topics_labels_prop \g_tlt_col_idx_int}
     %% \clist_pop:NN \l_tmpa_clist \l_tmpa_tl
     %% \int_set:Nn \l_tmpa_int \l_tmpa_tl
     %% \int_incr:N \l_tmpa_int
     %% \clist_push:NV \l_tmpa_clist \l_tmpa_int
-    %% \prop_gput:NVV \g_rows_spans_prop \tlt_col_idx_int \l_tmpa_clist
+    %% \prop_gput:NVV \g_tlt_rows_spans_prop \g_tlt_col_idx_int \l_tmpa_clist
     %% \tlt_calc_cell_height:n \l_tmpb_int
   } {
     \clist_pop:NN \l_tmpa_clist \l_tmpa_tl
     \int_set:Nn \l_tmpa_int \l_tmpa_tl
     \int_incr:N \l_tmpa_int
     \clist_push:NV \l_tmpa_clist \l_tmpa_int
-    \prop_gput:NVV \g_rows_spans_prop \tlt_col_idx_int \l_tmpa_clist
+    \prop_gput:NVV \g_tlt_rows_spans_prop \g_tlt_col_idx_int \l_tmpa_clist
     \tlt_calc_cell_height:n \l_tmpb_int
     % render nothing
   }
 }
+
+%% HIGH LEVEL GET/SET TOPICS OPERATIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\msg_new:nnn {tabloid} {invalid-index} {
+  You~tried~to~use~an~uninitialized~topic~index~\msg_line_context:.
+}
+
+% together, the two macros compose the high-level \Topic command
 
 \cs_new:Nn \tlt_set_topic:nn {
   \tl_set:Nn \l_tmpa_tl { #2 }
@@ -210,23 +224,18 @@
 \cs_generate_variant:Nn \tlt_get_topic:n { V }
 \cs_generate_variant:Nn \tlt_set_topic:nn { Vn }
 
-\cs_generate_variant:Nn \prop_item:Nn { NV }
+%% HEIGHTS COMPUTATIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \cs_new:Nn \tlt_compute_data: {
-  %% \prop_show:N \tlt_loaded_data
-  %% \int_show:N \tlt_col_idx_int
-
-  \clist_gclear:N \g_multirows_heights_clist
+  \clist_gclear:N \g_tlt_multirows_heights_clist
   %% iterate over column indices; idx still has the last (maximum) value 
-  \int_step_inline:nnnn { 1 } { 1 } { \tlt_col_idx_int } {
+  \int_step_inline:nnnn { 1 } { 1 } { \g_tlt_col_idx_int } {
     %% fetch memorized cell spans, ordered from bottom to top
-    \prop_get:NnNTF \g_rows_spans_prop { ##1 } \l_tmpb_tl {
+    \prop_get:NnNTF \g_tlt_rows_spans_prop { ##1 } \l_tmpb_tl {
       \clist_set:NV \l_tmpa_clist \l_tmpb_tl
     } {
       \clist_set:NV \l_tmpa_clist \c_empty_clist
     }
-
-
     \clist_reverse:N \l_tmpa_clist
     %% empty tmp list (for outer step cycle)
     \clist_clear:N \l_tmpb_clist
@@ -243,26 +252,11 @@
       }
     }
     \clist_reverse:N \l_tmpb_clist
-    \clist_gput_right:Nx \g_multirows_heights_clist {{\l_tmpb_clist}}
+    \clist_gput_right:Nx \g_tlt_multirows_heights_clist {{\l_tmpb_clist}}
   }
-
-  %% \clist_show:N \g_multirows_heights_clist
 }
 
-\NewDocumentCommand{\Topic}{o}{%
-  \IfValueTF{#1}{\tlt_set_topic:Vn{\tlt_col_idx_int}{#1}}{\tlt_get_topic:V{\tlt_col_idx_int}}%
-}
-
-\newcolumntype{F}{>{\int_gset:Nn \tlt_col_idx_int {1}}}
-\newcolumntype{T}{>{\int_gincr:N \tlt_col_idx_int}}
-
-\DeclareExpandableDocumentCommand{\TopicLine}{}{
-  \noalign{ \CLINE_split:V \tlt_col_tot_int }
-  % TODO: is this best place?
-  \int_gincr:N \tlt_row_idx_int
-  \tl_set:Nx \l_tmpa_tl {TLT-\theLT@tables-\int_use:N \tlt_row_idx_int}
-  \expandafter\zref@labelbyprops{\tl_use:N \l_tmpa_tl}{abspage}
-}
+%% CONDITIONALS ON ROW POSITIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \cs_new:Nn \is_last_row_of_page:n {
   % get page of given row
@@ -293,7 +287,7 @@
 
 \cs_new:Nn \on_first_row_of_page:N {
   % get page of given row
-  \int_set_eq:NN \l_tmpa_int \tlt_row_idx_int
+  \int_set_eq:NN \l_tmpa_int \g_tlt_row_idx_int
   \tl_set:Nx \l_tmpa_tl {TLT-\theLT@tables-\int_use:N \l_tmpa_int}
   \tl_set:Nx \l_tmpa_tl {\expandafter\zref@extract{\tl_use:N \l_tmpa_tl}{abspage}}
   % get page of prev row
@@ -306,7 +300,7 @@
 
 \cs_new:Nn \on_last_row_of_page:N {
   % get page of given row
-  \int_set_eq:NN \l_tmpa_int \tlt_row_idx_int
+  \int_set_eq:NN \l_tmpa_int \g_tlt_row_idx_int
   \tl_set:Nx \l_tmpa_tl {TLT-\theLT@tables-\int_use:N \l_tmpa_int}
   \tl_set:Nx \l_tmpa_tl {\expandafter\zref@extract{\tl_use:N \l_tmpa_tl}{abspage}}
   % get page of prev row
@@ -320,9 +314,11 @@
 \cs_generate_variant:Nn \is_first_row_of_page:n { V }
 \cs_generate_variant:Nn \is_last_row_of_page:n { V }
 
+%% LINE DRAWING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \cs_new_protected:Nn \CLINE_split:n {
   \clist_clear:N \l_tmpb_clist
-  \prop_map_inline:Nn \tlt_loaded_data {
+  \prop_map_inline:Nn \g_tlt_loaded_data_prop {
     \tl_set:Nn \l_tmpa_tl {##1}
     % get first element as integer A
     \clist_set:Nn \l_tmpa_clist {##2}
@@ -336,38 +332,58 @@
       \clist_gpush:NV \l_tmpb_clist \l_tmpa_tl
     }
   }
-  %% \clist_show:N \l_tmpb_clist
   \clist_sort:Nn \l_tmpb_clist {
     \int_compare:nNnTF { ##1 } { > } { ##2 } { \sort_return_swapped: } { \sort_return_same: }
   }
   \clist_pop:NNTF \l_tmpb_clist \l_tmpb_tl {} { \tl_set:Nn \l_tmpb_tl { #1 } }
 
-
   \tl_gset:Nx \g_tmpa_tl { \noexpand\cline{\l_tmpb_tl-#1} }
 
   \on_last_row_of_page:N \l_tmpa_bool
+  % note the tricky post-group expansion
   \bool_if:NTF \l_tmpa_bool {} { \group_insert_after:N \g_tmpa_tl }
-  
-
 }
 
 \cs_generate_variant:Nn \CLINE_split:n { V }
 
+%% USER INTERFACE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% used on the first (F) and other (T) columns, hook in the column counter
+\newcolumntype{F}{>{\int_gset:Nn \g_tlt_col_idx_int {1}}}
+\newcolumntype{T}{>{\int_gincr:N \g_tlt_col_idx_int}}
+
+%% draws the separators, handles the row counter and labels to track pagebreaks
+\DeclareExpandableDocumentCommand{\TopicLine}{}{
+  \noalign{ \CLINE_split:V \g_tlt_col_tot_int }
+  \int_gincr:N \g_tlt_row_idx_int
+  \tl_set:Nx \l_tmpa_tl {TLT-\theLT@tables-\int_use:N \g_tlt_row_idx_int}
+  \expandafter\zref@labelbyprops{\tl_use:N \l_tmpa_tl}{abspage}
+}
+
+%% the main environment
 \NewDocumentEnvironment {topiclongtable} {mm} {%
   %% set next table id
-  \int_gset:Nn \tlt_col_tot_int {#2}
+  \int_gset:Nn \g_tlt_col_tot_int {#2}
   \int_set_eq:NN \l_tmpa_int \theLT@tables
   \int_incr:N \l_tmpa_int
-  \tl_gset:Nx \g_tlt_cur_table_id {TLT\int_use:N \l_tmpa_int}
+  \tl_gset:Nx \g_tlt_cur_table_id_tl {TLT\int_use:N \l_tmpa_int}
   %% initialize table and open environment
-  \tlt_init_table:V \g_tlt_cur_table_id
+  \tlt_init_table:V \g_tlt_cur_table_id_tl
   \begin{longtable}{#1}
 }{
   %% close environment and finalize table
   \end{longtable}
-  \tlt_exit_table:V \g_tlt_cur_table_id
+  \tlt_exit_table:V \g_tlt_cur_table_id_tl
 }
 
+%% the main command
+\NewDocumentCommand{\Topic}{o}{%
+  \IfValueTF{#1}{\tlt_set_topic:Vn{\g_tlt_col_idx_int}{#1}}{\tlt_get_topic:V{\g_tlt_col_idx_int}}%
+}
+
+%% HOOKS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% these are needed so set up and tear down io streams
 \AtBeginDocument{\tlt_init:}
 \AtEndDocument{\tlt_exit:}
 
