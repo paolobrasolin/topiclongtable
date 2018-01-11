@@ -3,7 +3,7 @@
 \usepackage{topiclongtable}
 
 \usepackage[
-  paperwidth=3in,
+  paperwidth=5in,
   paperheight=3in,
   margin=.5in,
   %% showframe
@@ -12,6 +12,8 @@
 \begin{document}
 
 \begin{topiclongtable}{|Fl|Tl|Tl|Tl|}{4}
+  \hline\endhead
+  \hline\endfoot
   \TopicLine \Topic[T1] & \Topic[ST1] & \Topic[SST1] & X \\
   \TopicLine \Topic     & \Topic      & \Topic[SST2] & X \\ 
   \TopicLine \Topic     & \Topic[ST2] & \Topic[SST3] & X \\ 
@@ -37,19 +39,21 @@
   \TopicLine \Topic     & \Topic      & \Topic[SST2] & X \\
 \end{topiclongtable}
 
-\begin{topiclongtable}{|Fl|Tl|Tl|}{3}
-  \TopicLine \Topic[R1] & \Topic[SR1] & X \\
+\begin{topiclongtable}{|Fl|Tl|Tr|}{3}
+  \hline\endhead
+  \hline\endfoot
+  \TopicLine \Topic[R1] & \Topic[SR1] & XXX \\
+  \TopicLine \Topic     & \Topic      & XX \\ 
   \TopicLine \Topic     & \Topic      & X \\ 
   \TopicLine \Topic     & \Topic      & X \\ 
   \TopicLine \Topic     & \Topic      & X \\ 
-  \TopicLine \Topic     & \Topic      & X \\ 
-  \TopicLine \Topic     & \Topic      & X \\ 
+  \TopicLine \Topic     & \Topic      & XX \\ 
   \TopicLine \Topic     & \Topic[SR2] & X \\ 
   \TopicLine \Topic     & \Topic[SR2] & X \\ 
-  \TopicLine \Topic     & \Topic      & X \\ 
+  \TopicLine \Topic     & \Topic      & XXXX \\ 
   \TopicLine \Topic     & \Topic      & X \\ 
   \TopicLine \Topic     & \Topic[SR2] & X \\ 
-  \TopicLine \Topic     & \Topic[SR3] & X \\ 
+  \TopicLine \Topic     & \Topic[SR3] & XX \\ 
   \TopicLine \Topic     & \Topic      & X \\ 
   \TopicLine \Topic     & \Topic      & X \\ 
 \end{topiclongtable}

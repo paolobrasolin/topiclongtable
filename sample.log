@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.9.29)  9 JAN 2018 23:45
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.9.29)  11 JAN 2018 22:41
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -294,7 +294,7 @@ Package: xparse 2017/11/14 L3 Experimental document command parser
 .................................................
 . LaTeX info: "xparse/define-environment"
 . 
-. Defining environment 'topiclongtable' with sig. 'mm' on line 351.
+. Defining environment 'topiclongtable' with sig. 'mm' on line 369.
 .................................................
 )
 (/usr/local/texlive/2017basic/texmf-dist/tex/latex/geometry/geometry.sty
@@ -353,11 +353,11 @@ LaTeX Font Info:    ... okay on input line 12.
 * layout: <same size as paper>
 * layoutoffset:(h,v)=(0.0pt,0.0pt)
 * modes: 
-* h-part:(L,W,R)=(36.135pt, 144.54001pt, 36.135pt)
+* h-part:(L,W,R)=(36.135pt, 289.08pt, 36.135pt)
 * v-part:(T,H,B)=(36.135pt, 144.54001pt, 36.135pt)
-* \paperwidth=216.81pt
+* \paperwidth=361.34999pt
 * \paperheight=216.81pt
-* \textwidth=144.54001pt
+* \textwidth=289.08pt
 * \textheight=144.54001pt
 * \oddsidemargin=-36.135pt
 * \evensidemargin=-36.135pt
@@ -382,18 +382,22 @@ LaTeX Font Info:    ... okay on input line 12.
 [1
 
 {/usr/local/texlive/2017basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-[2] [3] [4] (./sample.aux) ) 
+[2] [3]
+Overfull \vbox (2.8599pt too high) has occurred while \output is active []
+
+
+[4] (./sample.aux) ) 
 Here is how much of TeX's memory you used:
- 9639 strings out of 494437
- 192534 string characters out of 6166645
- 232115 words of memory out of 5000000
- 12984 multiletter control sequences out of 15000+600000
+ 9638 strings out of 494437
+ 192532 string characters out of 6166645
+ 232212 words of memory out of 5000000
+ 12983 multiletter control sequences out of 15000+600000
  530572 words of font info for 23 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
  43i,5n,32p,10380b,275s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/local/texlive/2017basic/texmf-dist/fonts/type
-1/public/amsfonts/cm/cmr10.pfb>
-Output written on sample.pdf (4 pages, 13941 bytes).
+</usr/local/texlive/2017basic/texmf-dist/fonts/type1/public
+/amsfonts/cm/cmr10.pfb>
+Output written on sample.pdf (4 pages, 14068 bytes).
 PDF statistics:
  21 PDF objects out of 1000 (max. 8388607)
  13 compressed objects within 1 object stream
