@@ -16,6 +16,8 @@
 \RequirePackage{xparse}
 \RequirePackage{expl3}
 
+%% \RequirePackage{footnote}
+
 %% \makeatletter
 \ExplSyntaxOn
 
@@ -43,6 +45,9 @@
 
 %% tracks table index (id)
 \tl_new:N \g_tlt_cur_table_id_tl
+
+%% hold continuation code
+\tl_new:N \g_tlt_continuation_code_tl
 
 %% just a handy helper
 \cs_generate_variant:Nn \prop_item:Nn { NV }
@@ -131,6 +136,10 @@
 
 %% TOPICS BOOKKEEPING AND RENDERING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\NewDocumentCommand{\TopicSetContinuationCode}{m}{
+  \tl_gset:Nn \g_tlt_continuation_code_tl {#1}
+}
+
 %% internal used to mark/render new topic
 \cs_new:Nn \mark_new_topic:nn {
   % reset stack up until #1
@@ -179,7 +188,7 @@
       %% render the multirow cell
       %% \int_use:N \l_tmpb_int
       % render multirow
-      \multirow{\int_use:N \l_tmpb_int}{*}{\prop_item:NV \g_tlt_topics_labels_prop \g_tlt_col_idx_int}
+      \multirow{\int_use:N \l_tmpb_int}{*}{\prop_item:NV \g_tlt_topics_labels_prop \g_tlt_col_idx_int \tl_use:N \g_tlt_continuation_code_tl}
     %% \clist_pop:NN \l_tmpa_clist \l_tmpa_tl
     %% \int_set:Nn \l_tmpa_int \l_tmpa_tl
     %% \int_incr:N \l_tmpa_int
@@ -369,15 +378,17 @@
   \tl_gset:Nx \g_tlt_cur_table_id_tl {TLT\int_use:N \l_tmpa_int}
   %% initialize table and open environment
   \tlt_init_table:V \g_tlt_cur_table_id_tl
+  %% \savenotes
   \begin{longtable}{#1}
 }{
   %% close environment and finalize table
   \end{longtable}
+  %% \spewnotes
   \tlt_exit_table:V \g_tlt_cur_table_id_tl
 }
 
 %% the main command
-\NewDocumentCommand{\Topic}{o}{%
+\NewDocumentCommand{\Topic}{o}{% 
   \IfValueTF{#1}{\tlt_set_topic:Vn{\g_tlt_col_idx_int}{#1}}{\tlt_get_topic:V{\g_tlt_col_idx_int}}%
 }
 
