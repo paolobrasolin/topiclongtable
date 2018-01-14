@@ -12,8 +12,6 @@
 
 \begin{document}
 
-\TopicSetContinuationCode{\ (cont.)}
-
 % Our main environment is topiclongtable - which is
 % longtable with additional functionality.
 %
@@ -52,6 +50,9 @@
   \TopicLine \Topic     & \Topic      & \Topic[SST2] & X \\ 
   \TopicLine \Topic     & \Topic      & \Topic[SST2] & X \\
 \end{topiclongtable}
+
+% We can configure a continuation mark (empty by default) if we need it.
+\TopicSetContinuationCode{\ (cont.)}
 
 \begin{topiclongtable}{|Fl|Tl|Tr|}{3}
   \hline\endhead
