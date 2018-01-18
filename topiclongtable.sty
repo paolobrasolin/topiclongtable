@@ -8,7 +8,7 @@
 \RequirePackage{xparse}[2017/11/14]
 %% \RequirePackage{footnote}
 
-\ProvidesExplPackage {topiclongtable} {2018/18/01} {1.0.0} {Renders longtables of topics}
+\ProvidesExplPackage {topiclongtable} {2018/18/01} {1.1.0} {Renders longtables of topics}
 
 %% \DeclareOption{foobar}{}
 %% \ExecuteOptions{foobar}
@@ -365,9 +365,8 @@
 }
 
 %% the main environment
-\NewDocumentEnvironment {topiclongtable} {mm} {%
+\NewDocumentEnvironment {topiclongtable} {m} {%
   %% set next table id
-  \int_gset:Nn \g_tlt_col_tot_int {#2}
   \int_set_eq:NN \l_tmpa_int \theLT@tables
   \int_incr:N \l_tmpa_int
   \tl_gset:Nx \g_tlt_cur_table_id_tl {TLT\int_use:N \l_tmpa_int}
@@ -375,6 +374,7 @@
   \tlt_init_table:V \g_tlt_cur_table_id_tl
   %% \savenotes
   \begin{longtable}{#1}
+  \noalign{\int_gset:Nn \g_tlt_col_tot_int {\LT@cols}}
 }{
   %% close environment and finalize table
   \end{longtable}
