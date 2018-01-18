@@ -1,25 +1,20 @@
-\NeedsTeXFormat{LaTeX2e}%[2017-04-15]
-\ProvidesPackage{topiclongtable}[2017/01/11 topiclongtable]
+\NeedsTeXFormat{LaTeX2e}[2017-04-15]
+
+\RequirePackage{expl3}[2017/11/14]
+\RequirePackage{longtable}[2014/10/28]
+\RequirePackage{multirow}[2016/11/25]
+\RequirePackage{array}[2016/10/06]
+\RequirePackage{zref-abspage}[2016/05/21]
+\RequirePackage{xparse}[2017/11/14]
+%% \RequirePackage{footnote}
+
+\ProvidesExplPackage {topiclongtable} {2018/18/01} {1.0.0} {Renders longtables of topics}
 
 %% \DeclareOption{foobar}{}
 %% \ExecuteOptions{foobar}
 \ProcessOptions\relax
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\RequirePackage{longtable}
-\RequirePackage{multirow}
-\RequirePackage{array}
-
-\RequirePackage{zref-abspage}
-
-\RequirePackage{xparse}
-\RequirePackage{expl3}
-
-%% \RequirePackage{footnote}
-
-%% \makeatletter
-\ExplSyntaxOn
 
 %% topics bookeeping (current table)
 \seq_new:N \g_tlt_topics_stack_seq
@@ -397,9 +392,6 @@
 %% these are needed so set up and tear down io streams
 \AtBeginDocument{\tlt_init:}
 \AtEndDocument{\tlt_exit:}
-
-\ExplSyntaxOff
-%% \makeatother
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
