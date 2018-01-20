@@ -1,7 +1,7 @@
 \documentclass[11pt]{article}
 
 % The package has no options.
-\usepackage{topiclongtable}
+\usepackage{../topiclongtable}
 
 \usepackage[
   paperwidth=5in,
@@ -18,7 +18,7 @@
 % Column specifications must prepend F to the first column
 % and T to all other. Furthermore, the column numer is required
 % as a second parameter.
-\begin{topiclongtable}{|Fp{1in}|Tp{1in}|Tp{1in}|Tp{1in}|}{4}
+\begin{topiclongtable}{|Fp{1in}|Tp{1in}|Tp{1in}|Tp{1in}|}
   % To draw lines at the top and bottom of each table segment
   % we simply use empty head/foot. (This way we have maximum flexibility).
   \hline\endhead
@@ -54,7 +54,7 @@
 % We can configure a continuation mark (empty by default) if we need it.
 \TopicSetContinuationCode{\ (cont.)}
 
-\begin{topiclongtable}{|Fl|Tl|Tr|}{3}
+\begin{topiclongtable}{|Fl|Tl|Tr|}
   \hline\endhead
   \hline\endfoot
   \TopicLine \Topic[R1] & \Topic[SR1] & XXX \\
