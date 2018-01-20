@@ -1,17 +1,15 @@
 \NeedsTeXFormat{LaTeX2e}[2017-04-15]
 
-\RequirePackage{expl3}[2017/11/14]
-\RequirePackage{longtable}[2014/10/28]
-\RequirePackage{multirow}[2016/11/25]
-\RequirePackage{array}[2016/10/06]
 \RequirePackage{zref-abspage}[2016/05/21]
 \RequirePackage{xparse}[2017/11/14]
-%% \RequirePackage{footnote}
+\RequirePackage{expl3}[2017/11/14]
+\RequirePackage{array}[2016/10/06]
+\RequirePackage{multirow}[2016/11/25]
+\RequirePackage{longtable}[2014/10/28]
+\PassOptionsToPackage{longtable}{multirow}
 
-\ProvidesExplPackage {topiclongtable} {2018/18/01} {1.1.0} {Renders longtables of topics}
+\ProvidesExplPackage {topiclongtable} {2018/18/01} {1.2.0.pre} {Renders longtables of topics}
 
-%% \DeclareOption{foobar}{}
-%% \ExecuteOptions{foobar}
 \ProcessOptions\relax
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
