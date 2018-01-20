@@ -1,6 +1,12 @@
 # topiclongtable
 
-Development of this package was sponsored by Human Predictions, LLC (<http://www.humanpredictions.com>)
+Development of this package was sponsored by Human Predictions, LLC (<http://www.humanpredictions.com>).
+
+This package was developed by Paolo Brasolin (<paolo.brasolin@gmail.com>).
+
+This package is licensed under MIT License.
+
+---
 
 This LaTeX package implements table cells that:
 
@@ -179,4 +185,3 @@ You can set the width of the topic cells by using `\TopicSetWidth`, e.g.
 ```
 
 Allowed values are `=` (fit column width) and the default `*` (fit natural content width).
-
