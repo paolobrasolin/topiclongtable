@@ -12,6 +12,8 @@
 
 \begin{document}
 
+\TopicSetVPos{t}
+
 % Our main environment is topiclongtable - which is
 % longtable with additional functionality.
 %
@@ -53,8 +55,10 @@
 
 % We can configure a continuation mark (empty by default) if we need it.
 \TopicSetContinuationCode{\ (cont.)}
+\TopicSetVPos{b}
+\TopicSetWidth{=}
 
-\begin{topiclongtable}{|Fl|Tl|Tr|}
+\begin{topiclongtable}{|Fp{3cm}|Tp{2cm}|Tp{4cm}|}
   \hline\endhead
   \hline\endfoot
   \TopicLine \Topic[R1] & \Topic[SR1] & XXX \\

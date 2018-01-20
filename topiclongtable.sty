@@ -8,7 +8,7 @@
 \RequirePackage{longtable}[2014/10/28]
 \PassOptionsToPackage{longtable}{multirow}
 
-\ProvidesExplPackage {topiclongtable} {2018/18/01} {1.2.0.pre} {Renders longtables of topics}
+\ProvidesExplPackage {topiclongtable} {2018/18/01} {1.2.0.pre} {Renders autocollapsing cells in longtables}
 
 \ProcessOptions\relax
 
@@ -41,6 +41,13 @@
 
 %% hold continuation code
 \tl_new:N \g_tlt_continuation_code_tl
+
+%% hold multirow options
+\tl_new:N \g_tlt_multirow_vpos_tl
+\tl_new:N \g_tlt_multirow_width_tl
+%% whose defaults are
+\tl_gset:Nn \g_tlt_multirow_vpos_tl {t}
+\tl_gset:Nn \g_tlt_multirow_width_tl {*}
 
 %% just a handy helper
 \cs_generate_variant:Nn \prop_item:Nn { NV }
@@ -127,7 +134,17 @@
   \int_set:Nn { #1 } \l_tmpb_tl
 }
 
-%% TOPICS BOOKKEEPING AND RENDERING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% MULTIROW CONFIGURATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\NewDocumentCommand{\TopicSetVPos}{m}{
+  \tl_gset:Nn \g_tlt_multirow_vpos_tl {#1}
+}
+
+\NewDocumentCommand{\TopicSetWidth}{m}{
+  \tl_gset:Nn \g_tlt_multirow_width_tl {#1}
+}
+
+%% TOPICS BOOKKEEPING AND RENDERING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \NewDocumentCommand{\TopicSetContinuationCode}{m}{
   \tl_gset:Nn \g_tlt_continuation_code_tl {#1}
@@ -155,7 +172,7 @@
   \seq_gpush:Nn \g_tlt_topics_stack_seq {#1}
   \prop_gput:Nnn \g_tlt_topics_labels_prop {#1} {#2}
   % render the multirow
-  \multirow{\int_use:N \l_tmpb_int}{*}{\prop_item:Nn \g_tlt_topics_labels_prop {#1}}
+  \multirow[\tl_use:N \g_tlt_multirow_vpos_tl]{\int_use:N \l_tmpb_int}{\tl_use:N \g_tlt_multirow_width_tl}{\prop_item:Nn \g_tlt_topics_labels_prop {#1}}
 }
 
 %% internal used to mark/render reappearing topic
@@ -181,7 +198,7 @@
       %% render the multirow cell
       %% \int_use:N \l_tmpb_int
       % render multirow
-      \multirow{\int_use:N \l_tmpb_int}{*}{\prop_item:NV \g_tlt_topics_labels_prop \g_tlt_col_idx_int \tl_use:N \g_tlt_continuation_code_tl}
+      \multirow[\tl_use:N \g_tlt_multirow_vpos_tl]{\int_use:N \l_tmpb_int}{\tl_use:N \g_tlt_multirow_width_tl}{\prop_item:NV \g_tlt_topics_labels_prop \g_tlt_col_idx_int \tl_use:N \g_tlt_continuation_code_tl}
     %% \clist_pop:NN \l_tmpa_clist \l_tmpa_tl
     %% \int_set:Nn \l_tmpa_int \l_tmpa_tl
     %% \int_incr:N \l_tmpa_int
@@ -381,9 +398,15 @@
 }
 
 %% the main command
-\NewDocumentCommand{\Topic}{o}{% 
+\NewDocumentCommand{\Topic}{o}{%
   \IfValueTF{#1}{\tlt_set_topic:Vn{\g_tlt_col_idx_int}{#1}}{\tlt_get_topic:V{\g_tlt_col_idx_int}}%
 }
+%% NOTE: it'd be nice to have \Topic[vpos][width][vmove]{text}
+%%   with the same meanings as \multirow[vpos]{nrows}[bigstruts]{width}[vmove]{text}
+%%   with specification \NewDocumentCommand{\Topic}{D[]{t}D[]{*}D[]{0sp}g}
+%%   but the page breaks make it impossible to predict behaviour,
+%%   especially in relation to vmove - so in essence the settings would end
+%%   up being maximally local (equivalent to handmade multirows).
 
 %% HOOKS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
