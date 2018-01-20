@@ -19,6 +19,8 @@ To use the package start by putting `topiclongtable.sty` in your document folder
 \usepackage{topiclongtable}
 ```
 
+### Environment
+
 The main feature is the `topiclongtable` environment, an enriched version of `longtable` whose usual features are therefore available.
 
 ```tex
@@ -34,6 +36,10 @@ To give the column specification you will have to prepend `F` to the first one a
   ...
 \end{topiclongtable}
 ```
+
+## Macros
+
+### Cells
 
 To use the _smart_ cells you can use the `\Topic` macro as follows:
 
@@ -65,6 +71,8 @@ The main features of `\Topic` are demonstrated:
 * merging happens when it's omitted (rows 1-3 on column 1),
 * merging happens when it's value is equal to the preceeding one (rows 2-3 on columns 2 and 3),
 * merging does not happen (rows 3-4 on column 1) when the hierarchy is reset by the appearance of a new value in a column on the left (by row 4 column 1).
+
+### Lines
 
 By default no horizontal lines are drawn on top and bottom of table chunks to allow for maximal flexibility. You can use `longtable` footer and headers to easily draw them (or whichever footer/header you may desire).
 
@@ -136,5 +144,39 @@ The killer feature of the package is that cell merging behaves nicely with `long
 
 ```
 
+## Settings
 
+All settings described in this section are global and can be changed between tables.
+
+### Continuation mark
+
+Cells _continuing_ from the previous page can be explicitly marked.
+You can set a code fragment to append to such cells using `\TopicSetContinuationCode`.
+E.g. 
+
+```tex
+\TopicSetContinuationCode{\ (cont.)}
+```
+
+By default no mark is appended and you can reset to the default using `\TopicSetContinuationCode{}`.
+
+### Cell vertical alignment
+
+You can set the vertical position of the content for the topic cells by using `\TopicSetVPos`, e.g.
+
+```tex
+\TopicSetVPos{t}
+```
+
+Allowed values are `b` (bottom), `c` (center) and the default `t` (top).
+
+### Cell width
+
+You can set the width of the topic cells by using `\TopicSetWidth`, e.g.
+
+```tex
+\TopicSetVPos{*}
+```
+
+Allowed values are `=` (fit column width) and the default `*` (fit natural content width).
 
