@@ -96,12 +96,12 @@ Furthermore, you can use the `\TopicLine` to automatically draw the horizontal l
 \begin{topiclongtable}{|Fl|Tl|Tl|Tl|}
   \hline\endhead
   \hline\endfoot
-  \Topic[Topic 1] & \Topic[Subtopic 1] & \Topic[Subsubtopic 1] & Foo \\
-  \Topic          & \Topic             & \Topic[Subsubtopic 2] & Bar \\ 
-  \Topic          & \Topic[Subtopic 1] & \Topic[Subsubtopic 2] & Baz \\ 
-  \Topic[Topic 2] & \Topic[Subtopic 1] & \Topic[Subsubtopic 3] & Qux \\ 
-  \Topic          & \Topic[Subtopic 2] & \Topic[Subsubtopic 4] & Zod \\ 
-  \Topic          & \Topic             & \Topic                & Bop \\
+  \TopicLine \Topic[Topic 1] & \Topic[Subtopic 1] & \Topic[Subsubtopic 1] & Foo \\
+  \TopicLine \Topic          & \Topic             & \Topic[Subsubtopic 2] & Bar \\ 
+  \TopicLine \Topic          & \Topic[Subtopic 1] & \Topic[Subsubtopic 2] & Baz \\ 
+  \TopicLine \Topic[Topic 2] & \Topic[Subtopic 1] & \Topic[Subsubtopic 3] & Qux \\ 
+  \TopicLine \Topic          & \Topic[Subtopic 2] & \Topic[Subsubtopic 4] & Zod \\ 
+  \TopicLine \Topic          & \Topic             & \Topic                & Bop \\
 \end{topiclongtable}
 ```
 
