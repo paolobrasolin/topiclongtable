@@ -181,7 +181,7 @@ Allowed values are `b` (bottom), `c` (center) and the default `t` (top).
 You can set the width of the topic cells by using `\TopicSetWidth`, e.g.
 
 ```tex
-\TopicSetVPos{*}
+\TopicSetWidth{*}
 ```
 
 Allowed values are `=` (fit column width) and the default `*` (fit natural content width).
