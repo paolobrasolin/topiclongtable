@@ -35,10 +35,10 @@ The main feature is the `topiclongtable` environment, an enriched version of `lo
 \end{topiclongtable}
 ```
 
-To give the column specification you will have to prepend `F` to the first one and `T` to subsequent ones.
+To give the column specification you will have to prepend `F` to the first one and `T` to subsequent ones. The prefix can be safely omitted on columns after the last one containing `topiclongtable` macros (see next section).
 
 ```tex
-\begin{topiclongtable}{|Fl|Tl|Tl|Tl|}
+\begin{topiclongtable}{|Fl|Tl|Tl|l|}
   ...
 \end{topiclongtable}
 ```
@@ -50,7 +50,7 @@ To give the column specification you will have to prepend `F` to the first one a
 To use the _smart_ cells you can use the `\Topic` macro as follows:
 
 ```tex
-\begin{topiclongtable}{|Fl|Tl|Tl|Tl|}
+\begin{topiclongtable}{|Fl|Tl|Tl|l|}
   \Topic[Topic 1] & \Topic[Subtopic 1] & \Topic[Subsubtopic 1] & Foo \\
   \Topic          & \Topic             & \Topic[Subsubtopic 2] & Bar \\ 
   \Topic          & \Topic[Subtopic 1] & \Topic[Subsubtopic 2] & Baz \\ 
@@ -83,7 +83,7 @@ The main features of `\Topic` are demonstrated:
 By default no horizontal lines are drawn on top and bottom of table chunks to allow for maximal flexibility. You can use `longtable` footer and headers to easily draw them (or whichever footer/header you may desire).
 
 ```tex
-\begin{topiclongtable}{|Fl|Tl|Tl|Tl|}
+\begin{topiclongtable}{|Fl|Tl|Tl|l|}
   \hline\endhead
   \hline\endfoot
   ...
@@ -93,7 +93,7 @@ By default no horizontal lines are drawn on top and bottom of table chunks to al
 Furthermore, you can use the `\TopicLine` to automatically draw the horizontal lines between the rows:
 
 ```tex
-\begin{topiclongtable}{|Fl|Tl|Tl|Tl|}
+\begin{topiclongtable}{|Fl|Tl|Tl|l|}
   \hline\endhead
   \hline\endfoot
   \TopicLine \Topic[Topic 1] & \Topic[Subtopic 1] & \Topic[Subsubtopic 1] & Foo \\
