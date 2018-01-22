@@ -76,7 +76,7 @@ The main features of `\Topic` are demonstrated:
 * the parameter is optional,
 * merging happens when it's omitted (rows 1-3 on column 1),
 * merging happens when it's value is equal to the preceeding one (rows 2-3 on columns 2 and 3),
-* merging does not happen (rows 3-4 on column 1) when the hierarchy is reset by the appearance of a new value in a column on the left (by row 4 column 1).
+* merging does not happen (rows 3-4 on column 2) when the hierarchy is reset by the appearance of a new value in a column on the left (by row 4 column 1).
 
 #### Lines
 
