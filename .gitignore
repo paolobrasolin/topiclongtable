@@ -227,3 +227,9 @@ TSWLatexianTemp*
 
 # topiclongtable auxiliary files
 *.tlt
+
+# Makefile side effects
+*.hd
+*.ins
+*.pdf
+*.zip
