@@ -1,10 +1,16 @@
 # topiclongtable
 
-This package is sponsored by Human Predictions, LLC (<http://www.humanpredictions.com>).
+This work is sponsored by Human Predictions, LLC (<http://www.humanpredictions.com>).
 
-This package is developed by Paolo Brasolin (<paolo.brasolin@gmail.com>).
+This work is maintained by Paolo Brasolin (<paolo.brasolin@gmail.com>).
 
-This package is licensed under MIT License.
+This work is licensed under MIT License.
+
+This work is a LaTeX package consisting of the following files:
+  * README.md
+  * topiclongtable.sty
+  * topiclongtable-doc.tex
+  * topiclongtable-doc.pdf
 
 ---
 
