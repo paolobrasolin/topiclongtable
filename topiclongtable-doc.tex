@@ -25,13 +25,13 @@
 
 This \LaTeX\ package extends \env{longtable}s implementing
 \env{topiclongtable}s, in which vertically adjacent cells merge if and only if
-\begin{itemize}
+\begin{itemize}[nosep]
   \item they have the same content, and
   \item the cells on their left are merged.
 \end{itemize}
 
 Furthermore the merging is well behaved, in that
-\begin{itemize}
+\begin{itemize}[nosep]
   \item it does not happen after page breaks, and
   \item correct separation lines are drawn automatically.
 \end{itemize}
@@ -121,6 +121,7 @@ Here is a breakdown of the manifested behaviour:
   cells on the left are not merged (rows 3--4 on column 1).
 \end{itemize}
 
+
 \begin{function}{\TopicLine}
   \begin{syntax}
     \tn{TopicLine}
@@ -183,6 +184,48 @@ All settings described in this section are global and can be changed between tab
   \end{verbatim}
 \end{function}\smallskip
 
+Consider this example cracross two pages:
+\begin{verbatim}
+  \TopicSetContinuationCode{\ (cont.)}
+  \begin{topiclongtable}{|Fl|Tl|Tl|l|}
+    \hline\endhead
+    \hline\endfoot
+    \TopicLine \Topic[A] & \Topic[B] &  1 \\
+    \TopicLine \Topic    & \Topic    &  2 \\
+    % ...
+    \TopicLine \Topic    & \Topic[C] & 10 \\ 
+    \TopicLine \Topic    & \Topic    & 11 \\ 
+    % ...
+    \TopicLine \Topic    & \Topic    & 20 \\ 
+  \end{topiclongtable}
+\end{verbatim}
+\TopicSetContinuationCode{\ (cont.)}
+\begin{topiclongtable}{|Fl|Tl|l|}
+  \hline\endhead
+  \hline\endfoot
+  \TopicLine \Topic[A] & \Topic[B] &  1 \\
+  \TopicLine \Topic    & \Topic    &  2 \\ 
+  \TopicLine \Topic    & \Topic    &  3 \\ 
+  \TopicLine \Topic    & \Topic    &  4 \\ 
+  \TopicLine \Topic    & \Topic    &  5 \\ 
+  \TopicLine \Topic    & \Topic    &  6 \\ 
+  \TopicLine \Topic    & \Topic    &  7 \\ 
+  \TopicLine \Topic    & \Topic    &  8 \\ 
+  \TopicLine \Topic    & \Topic    &  9 \\ 
+  \TopicLine \Topic    & \Topic[C] & 10 \\ 
+  \TopicLine \Topic    & \Topic    & 11 \\ 
+  \TopicLine \Topic    & \Topic    & 12 \\ 
+  \TopicLine \Topic    & \Topic    & 13 \\ 
+  \TopicLine \Topic    & \Topic    & 14 \\ 
+  \TopicLine \Topic    & \Topic    & 15 \\ 
+  \TopicLine \Topic    & \Topic    & 16 \\ 
+  \TopicLine \Topic    & \Topic    & 17 \\ 
+  \TopicLine \Topic    & \Topic    & 18 \\ 
+  \TopicLine \Topic    & \Topic    & 19 \\ 
+  \TopicLine \Topic    & \Topic    & 20 \\ 
+\end{topiclongtable}
+\TopicSetContinuationCode{}
+
 \begin{function}{\TopicSetVPos}
   \begin{syntax}
     \tn{TopicSetVPos}\marg{vertical position specification}
@@ -190,8 +233,30 @@ All settings described in this section are global and can be changed between tab
   You can set the vertical position for \tn{Topic} cells by using
   \tn{TopicSetVPos}.  Allowed \meta{vertical position specification}s
   are \enquote{\texttt{b}} (bottom), \enquote{\texttt{c}} (center)
-  and the default \enquote{\texttt{t}} (top).
+  and the default \enquote{\texttt{t}} (top). All \tn{Topic} cells
+  will align in the same way:
 \end{function}\smallskip
+
+Here is an example of \emph{bottom} alignment:
+\begin{verbatim}
+  \TopicSetVPos{b}
+  \begin{topiclongtable}{|Fl|Tl|Tl|l|}
+    \hline\endhead
+    \hline\endfoot
+    \TopicLine \Topic[T1] & \Topic[ST1] & Foo \\
+    \TopicLine \Topic     & \Topic[ST2] & Bar \\ 
+    \TopicLine \Topic     & \Topic      & Baz \\ 
+  \end{topiclongtable}
+\end{verbatim}
+\TopicSetVPos{b}
+\begin{topiclongtable}{|Fl|Tl|Tl|l|}
+  \hline\endhead
+  \hline\endfoot
+  \TopicLine \Topic[T1] & \Topic[ST1] & \Topic[SST1] & Foo \\
+  \TopicLine \Topic     & \Topic      & \Topic[SST2] & Bar \\ 
+  \TopicLine \Topic     & \Topic[ST1] & \Topic[SST2] & Baz \\ 
+\end{topiclongtable}
+\TopicSetVPos{t}
 
 \begin{function}{\TopicSetWidth}
   \begin{syntax}
@@ -202,6 +267,29 @@ All settings described in this section are global and can be changed between tab
   \enquote{\texttt{=}} (fit column width) and the default
   \enquote{\texttt{*}} (fit natural content width).
 \end{function}\smallskip
+
+Note \enquote{\texttt{=}} will be useful mostly when coupled with
+column specifiers like \texttt{p}\Arg{width} to force the overflowing
+content inside the column width:
+\begin{verbatim}
+  \TopicSetWidth{=}
+  \begin{topiclongtable}{|Fp{.5in}|Tl|}
+    \hline\endhead
+    \hline\endfoot
+    \TopicLine \Topic[Fits column width] & A \\
+    \TopicLine \Topic                    & B \\
+    \TopicLine \Topic                    & C \\
+  \end{topiclongtable}
+\end{verbatim}
+\TopicSetWidth{=}
+\begin{topiclongtable}{|Fp{.5in}|Tl|}
+  \hline\endhead
+  \hline\endfoot
+  \TopicLine \Topic[Fits column width] & A \\
+  \TopicLine \Topic                    & B \\
+  \TopicLine \Topic                    & C \\
+\end{topiclongtable}
+\TopicSetWidth{*}
 
 \end{documentation}
 
