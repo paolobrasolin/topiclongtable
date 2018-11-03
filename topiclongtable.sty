@@ -8,7 +8,7 @@
 \RequirePackage{longtable}[2014/10/28]
 \PassOptionsToPackage{longtable}{multirow}
 
-\ProvidesExplPackage {topiclongtable} {2018/18/01} {1.2.0} {Renders autocollapsing cells in longtables}
+\ProvidesExplPackage {topiclongtable} {2018/11/03} {1.2.1} {Renders autocollapsing cells in longtables}
 
 \ProcessOptions\relax
 
@@ -218,7 +218,7 @@
 
 %% HIGH LEVEL GET/SET TOPICS OPERATIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\msg_new:nnn {tabloid} {invalid-index} {
+\msg_new:nnn {topiclongtable} {invalid-index} {
   You~tried~to~use~an~uninitialized~topic~index~\msg_line_context:.
 }
 
@@ -236,7 +236,7 @@
   \seq_if_in:NnTF \g_tlt_topics_stack_seq {#1} {
     \mark_old_topic:
   } {
-    \msg_error:nn {tabloid} {invalid-index}
+    \msg_error:nn {topiclongtable} {invalid-index}
   }
 }
 
