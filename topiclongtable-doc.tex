@@ -1,4 +1,7 @@
 \documentclass[full,kernel]{l3doc}
+
+\usepackage{topiclongtable}
+
 \begin{document}
 
 \title{%
@@ -13,706 +16,192 @@
   \href{mailto:paolo.brasolin@gmail.com}{paolo.brasolin@gmail.com}
 }
 
-\date{2018/18/01 v1.2.0}
+\date{2018/01/18 v1.2.0}
 
 \maketitle
 
 \begin{documentation}
 
-Comma lists contain ordered data where items can be added to the left
-or right end of the list.  This data type allows basic list
-manipulations such as adding/removing items, applying a function to
-every item, removing duplicate items, extracting a given item, using
-the comma list with specified separators, and so on.  Sequences
-(defined in \pkg{l3seq}) are safer, faster, and provide more features,
-so they should often be preferred to comma lists.  Comma lists are
-mostly useful when interfacing with \LaTeXe{} or other code that
-expects or provides comma list data.
 
-Several items can be added at once.  To ease input of comma lists from
-data provided by a user outside an \cs{ExplSyntaxOn} \ldots{}
-\cs{ExplSyntaxOff} block, spaces are removed from both sides of each
-comma-delimited argument upon input.  Blank arguments are ignored, to
-allow for trailing commas or repeated commas (which may otherwise
-arise when concatenating comma lists \enquote{by hand}).  In addition,
-a set of braces is removed if the result of space-trimming is braced:
-this allows the storage of any item in a comma list.  For instance,
+This \LaTeX\ package extends \env{longtable}s implementing
+\env{topiclongtable}s, in which vertically adjacent cells merge if and only if
+\begin{itemize}
+  \item they have the same content, and
+  \item the cells on their left are merged.
+\end{itemize}
+
+Furthermore the merging is well behaved, in that
+\begin{itemize}
+  \item it does not happen after page breaks, and
+  \item correct separation lines are drawn automatically.
+\end{itemize}
+
+The typical use case is a table that spans multiple pages and
+contains a list of hierarchically organized topics (hence the package
+name).
+
+
+
+
+\section*{Usage}
+
+To use the package install it in your tree (or put \file{topiclongtable.sty} in your work folder) and require it in your preamble:
+
 \begin{verbatim}
-  \clist_new:N \l_my_clist
-  \clist_put_left:Nn \l_my_clist { ~a~ , ~{b}~ , c~\d }
-  \clist_put_right:Nn \l_my_clist { ~{e~} , , {{f}} , }
+  \usepackage{topiclongtable}
 \end{verbatim}
-results in |\l_my_clist| containing |a,b,c~\d,{e~},{{f}}| namely the
-five items |a|, |b|, |c~\d|, |e~| and~|{f}|.  Comma lists normally do
-not contain empty items so the following gives an empty comma list:
+
+
+
+
+\subsection*{Environment}
+
+\begin{function}{topiclongtable}
+  \begin{syntax}
+    \tn[no-index]{begin}\{\env{topiclongtable}\}\marg{column specification}
+    \ \ \meta{cells specification}
+    \tn[no-index]{end}\{\env{topiclongtable}\}
+  \end{syntax}
+  The \env{topiclongtable} environment extends \env{longtable}.
+  They share the same syntax and all features of the latter are
+  available in the former.
+
+  To use \pkg{topiclongtable} macros you must \emph{prepend} \enquote{\texttt{F}}
+  to the first column specification and \enquote{\texttt{T}} to all others.  You
+  can omit the prefix only on columns following the last one that contains
+  \pkg{topiclongtable} macros:
+  \begin{verbatim}
+    \begin{topiclongtable}{|Fl|Tl|Tl|Tr|l|r}
+      % ...
+    \end{topiclongtable}
+  \end{verbatim}
+\end{function}\smallskip
+
+
+
+
+\subsection*{Macros}
+
+\begin{function}{\Topic}
+  \begin{syntax}
+    \tn{Topic}\oarg{content}
+  \end{syntax}
+  This is the main macro of the package; you can use it to wrap the
+  optional \meta{content} of a cell in order to allow it to merge with
+  adjacent cells.
+\end{function}\smallskip
+
+The behaviour of \tn{Topic} can be observed in the following kitchen sink:
 \begin{verbatim}
-  \clist_clear_new:N \l_my_clist
-  \clist_put_right:Nn \l_my_clist { , ~ , , }
-  \clist_if_empty:NTF \l_my_clist { true } { false }
+  \begin{topiclongtable}{|Fl|Tl|Tl|l|}
+    \Topic[Topic 1] & \Topic[Subtopic 1] & \Topic[Subsubtopic 1] & Foo \\
+    \Topic          & \Topic             & \Topic[Subsubtopic 2] & Bar \\ 
+    \Topic          & \Topic[Subtopic 1] & \Topic[Subsubtopic 2] & Baz \\ 
+    \Topic[Topic 2] & \Topic[Subtopic 1] & \Topic[Subsubtopic 3] & Qux \\ 
+    \Topic          & \Topic[Subtopic 2] & \Topic[Subsubtopic 4] & Zod \\ 
+    \Topic          & \Topic             & \Topic                & Bop \\
+  \end{topiclongtable}
 \end{verbatim}
-and it leaves \texttt{true} in the input stream.  To include an
-\enquote{unsafe} item (empty, or one that contains a comma, or starts
-or ends with a space, or is a single brace group), surround it with
-braces.
+\begin{topiclongtable}{|Fl|Tl|Tl|l|}
+  \Topic[Topic 1] & \Topic[Subtopic 1] & \Topic[Subsubtopic 1] & Foo \\
+  \Topic          & \Topic             & \Topic[Subsubtopic 2] & Bar \\ 
+  \Topic          & \Topic[Subtopic 1] & \Topic[Subsubtopic 2] & Baz \\ 
+  \Topic[Topic 2] & \Topic[Subtopic 1] & \Topic[Subsubtopic 3] & Qux \\
+  \Topic          & \Topic[Subtopic 2] & \Topic[Subsubtopic 4] & Zod \\ 
+  \Topic          & \Topic             & \Topic                & Bop \\
+\end{topiclongtable}
 
-Almost all operations on comma lists are
-noticeably slower than those on sequences so converting the data to
-sequences using \cs{seq_set_from_clist:Nn} (see \pkg{l3seq}) may be
-advisable if speed is important.  The exception is that
-\cs{clist_if_in:NnTF} and \cs{clist_remove_duplicates:N} may be faster
-than their sequence analogues for large lists.  However, these
-functions work slowly for \enquote{unsafe} items that must be braced,
-and may produce errors when their argument contains |{|, |}| or |#|
-(assuming the usual \TeX{} category codes apply).  In addition, comma
-lists cannot store quarks \cs{q_mark} or \cs{q_stop}.  The sequence
-data type should thus certainly be preferred to comma lists to store
-such items.
+Here is a breakdown of the manifested behaviour:
+\begin{itemize}[nosep]
+  \item the parameter is optional;
+  \item merging happens when it is omitted (rows 1--3 on column 1);
+  \item merging happens when its value is equal to the one above
+  (rows 2--3 on columns 2 and 3);
+  \item merging does not happen (rows 3--4 on column 2) when the
+  cells on the left are not merged (rows 3--4 on column 1).
+\end{itemize}
 
-\section{Creating and initialising comma lists}
-
-\begin{function}{\clist_new:N, \clist_new:c}
+\begin{function}{\TopicLine}
   \begin{syntax}
-    \cs{clist_new:N} \meta{comma list}
+    \tn{TopicLine}
   \end{syntax}
-  Creates a new \meta{comma list} or raises an error if the name is
-  already taken. The declaration is global. The \meta{comma list}
-  initially contains no items.
-\end{function}
+  \tn{TopicLine} can be used at the start of a row to automatically
+  draw the horizontal lines that separates it from the row above
+  and correctly accounts for merged cells.
 
-\begin{function}[added = 2014-07-05]
-  {
-    \clist_const:Nn, \clist_const:Nx,
-    \clist_const:cn, \clist_const:cx
-  }
+  By default no horizontal lines are drawn on top and bottom of
+  table chunks to allow for maximal flexibility. You can use longtable
+  footer and headers to easily draw them (or whichever footer/header
+  you may desire) as shown in the next example.
+\end{function}\smallskip
+
+Here is the previous kitchen sink with lines added:
+\begin{verbatim}
+  \begin{topiclongtable}{|Fl|Tl|Tl|l|}
+    \hline\endhead
+    \hline\endfoot
+    \TopicLine \Topic[T1] & \Topic[ST1] & \Topic[SST1] & Foo \\
+    \TopicLine \Topic     & \Topic      & \Topic[SST2] & Bar \\ 
+    \TopicLine \Topic     & \Topic[ST1] & \Topic[SST2] & Baz \\ 
+    \TopicLine \Topic[T2] & \Topic[ST1] & \Topic[SST3] & Qux \\ 
+    \TopicLine \Topic     & \Topic[ST2] & \Topic[SST4] & Zod \\ 
+    \TopicLine \Topic     & \Topic      & \Topic       & Bop \\
+  \end{topiclongtable}
+\end{verbatim}
+\begin{topiclongtable}{|Fl|Tl|Tl|l|}
+  \hline\endhead
+  \hline\endfoot
+  \TopicLine \Topic[T1] & \Topic[ST1] & \Topic[SST1] & Foo \\
+  \TopicLine \Topic     & \Topic      & \Topic[SST2] & Bar \\ 
+  \TopicLine \Topic     & \Topic[ST1] & \Topic[SST2] & Baz \\ 
+  \TopicLine \Topic[T2] & \Topic[ST1] & \Topic[SST3] & Qux \\ 
+  \TopicLine \Topic     & \Topic[ST2] & \Topic[SST4] & Zod \\ 
+  \TopicLine \Topic     & \Topic      & \Topic       & Bop \\
+\end{topiclongtable}
+
+
+
+
+\subsection*{Settings}
+
+All settings described in this section are global and can be changed between tables.
+
+\begin{function}{\TopicSetContinuationCode}
   \begin{syntax}
-    \cs{clist_const:Nn} \meta{clist~var} \Arg{comma list}
+    \tn{TopicSetContinuationCode}\marg{\TeX\ code}
   \end{syntax}
-  Creates a new constant \meta{clist~var} or raises an error
-  if the name is already taken. The value of the
-  \meta{clist~var} is set globally to the
-  \meta{comma list}.
-\end{function}
-
-\begin{function}
-  {\clist_clear:N, \clist_clear:c, \clist_gclear:N, \clist_gclear:c}
-  \begin{syntax}
-    \cs{clist_clear:N} \meta{comma list}
-  \end{syntax}
-  Clears all items from the \meta{comma list}.
-\end{function}
-
-\begin{function}
-  {
-    \clist_clear_new:N,  \clist_clear_new:c,
-    \clist_gclear_new:N, \clist_gclear_new:c
-  }
-  \begin{syntax}
-    \cs{clist_clear_new:N} \meta{comma list}
-  \end{syntax}
-  Ensures that the \meta{comma list} exists globally by applying
-  \cs{clist_new:N} if necessary, then applies
-  \cs[index=clist_clear:N]{clist_(g)clear:N} to leave
-  the list empty.
-\end{function}
-
-\begin{function}
-  {
-    \clist_set_eq:NN,  \clist_set_eq:cN,
-    \clist_set_eq:Nc,  \clist_set_eq:cc,
-    \clist_gset_eq:NN, \clist_gset_eq:cN,
-    \clist_gset_eq:Nc, \clist_gset_eq:cc
-  }
-  \begin{syntax}
-    \cs{clist_set_eq:NN} \meta{comma list_1} \meta{comma list_2}
-  \end{syntax}
-  Sets the content of \meta{comma list_1} equal to that of
-  \meta{comma list_2}.
-\end{function}
-
-\begin{function}[added = 2014-07-17]
-  {
-    \clist_set_from_seq:NN,  \clist_set_from_seq:cN,
-    \clist_set_from_seq:Nc,  \clist_set_from_seq:cc,
-    \clist_gset_from_seq:NN, \clist_gset_from_seq:cN,
-    \clist_gset_from_seq:Nc, \clist_gset_from_seq:cc
-  }
-  \begin{syntax}
-    \cs{clist_set_from_seq:NN} \meta{comma list} \meta{sequence}
-  \end{syntax}
-  Converts the data in the \meta{sequence} into a \meta{comma list}:
-  the original \meta{sequence} is unchanged.
-  Items which contain either spaces or commas are surrounded by braces.
-\end{function}
-
-\begin{function}
-  {
-    \clist_concat:NNN,  \clist_concat:ccc,
-    \clist_gconcat:NNN, \clist_gconcat:ccc
-  }
-  \begin{syntax}
-    \cs{clist_concat:NNN} \meta{comma list_1} \meta{comma list_2} \meta{comma list_3}
-  \end{syntax}
-  Concatenates the content of \meta{comma list_2} and \meta{comma list_3}
-  together and saves the result in \meta{comma list_1}. The items in
-  \meta{comma list_2} are placed at the left side of the new comma list.
-\end{function}
-
-\begin{function}[EXP, pTF, added=2012-03-03]
-  {\clist_if_exist:N, \clist_if_exist:c}
-  \begin{syntax}
-    \cs{clist_if_exist_p:N} \meta{comma list}
-    \cs{clist_if_exist:NTF} \meta{comma list} \Arg{true code} \Arg{false code}
-  \end{syntax}
-  Tests whether the \meta{comma list} is currently defined.  This does
-  not check that the \meta{comma list} really is a comma list.
-\end{function}
-
-\section{Adding data to comma lists}
-
-\begin{function}[added = 2011-09-06]
-  {
-    \clist_set:Nn,  \clist_set:NV,
-    \clist_set:No,  \clist_set:Nx,
-    \clist_set:cn,  \clist_set:cV,
-    \clist_set:co,  \clist_set:cx,
-    \clist_gset:Nn, \clist_gset:NV,
-    \clist_gset:No, \clist_gset:Nx,
-    \clist_gset:cn, \clist_gset:cV,
-    \clist_gset:co, \clist_gset:cx
-  }
-  \begin{syntax}
-    \cs{clist_set:Nn} \meta{comma list} |{|\meta{item_1},\ldots{},\meta{item_n}|}|
-  \end{syntax}
-  Sets \meta{comma list} to contain the \meta{items},
-  removing any previous content from the variable.
-  Blank items are omitted, spaces are removed from both sides of each
-  item, then a set of braces is removed if the resulting space-trimmed
-  item is braced.
-  To store some \meta{tokens} as a single \meta{item} even if the
-  \meta{tokens} contain commas or spaces, add a set of braces:
-  \cs{clist_set:Nn} \meta{comma list} |{| \Arg{tokens} |}|.
-\end{function}
-
-\begin{function}[updated = 2011-09-05]
-  {
-    \clist_put_left:Nn,  \clist_put_left:NV,
-    \clist_put_left:No,  \clist_put_left:Nx,
-    \clist_put_left:cn,  \clist_put_left:cV,
-    \clist_put_left:co,  \clist_put_left:cx,
-    \clist_gput_left:Nn, \clist_gput_left:NV,
-    \clist_gput_left:No, \clist_gput_left:Nx,
-    \clist_gput_left:cn, \clist_gput_left:cV,
-    \clist_gput_left:co, \clist_gput_left:cx
-  }
-  \begin{syntax}
-    \cs{clist_put_left:Nn} \meta{comma list} |{|\meta{item_1},\ldots{},\meta{item_n}|}|
-  \end{syntax}
-  Appends the \meta{items} to the left of the \meta{comma list}.
-  Blank items are omitted, spaces are removed from both sides of each
-  item, then a set of braces is removed if the resulting space-trimmed
-  item is braced.
-  To append some \meta{tokens} as a single \meta{item} even if the
-  \meta{tokens} contain commas or spaces, add a set of braces:
-  \cs{clist_put_left:Nn} \meta{comma list} |{| \Arg{tokens} |}|.
-\end{function}
-
-\begin{function}[updated = 2011-09-05]
-  {
-    \clist_put_right:Nn,  \clist_put_right:NV,
-    \clist_put_right:No,  \clist_put_right:Nx,
-    \clist_put_right:cn,  \clist_put_right:cV,
-    \clist_put_right:co,  \clist_put_right:cx,
-    \clist_gput_right:Nn, \clist_gput_right:NV,
-    \clist_gput_right:No, \clist_gput_right:Nx,
-    \clist_gput_right:cn, \clist_gput_right:cV,
-    \clist_gput_right:co, \clist_gput_right:cx
-  }
-  \begin{syntax}
-    \cs{clist_put_right:Nn} \meta{comma list} |{|\meta{item_1},\ldots{},\meta{item_n}|}|
-  \end{syntax}
-  Appends the \meta{items} to the right of the \meta{comma list}.
-  Blank items are omitted, spaces are removed from both sides of each
-  item, then a set of braces is removed if the resulting space-trimmed
-  item is braced.
-  To append some \meta{tokens} as a single \meta{item} even if the
-  \meta{tokens} contain commas or spaces, add a set of braces:
-  \cs{clist_put_right:Nn} \meta{comma list} |{| \Arg{tokens} |}|.
-\end{function}
-
-\section{Modifying comma lists}
-
-While comma lists are normally used as ordered lists, it may be
-necessary to modify the content. The functions here may be used
-to update comma lists, while retaining the order of the unaffected
-entries.
-
-\begin{function}
-  {
-    \clist_remove_duplicates:N,  \clist_remove_duplicates:c,
-    \clist_gremove_duplicates:N, \clist_gremove_duplicates:c
-  }
-  \begin{syntax}
-    \cs{clist_remove_duplicates:N} \meta{comma list}
-  \end{syntax}
-  Removes duplicate items from the \meta{comma list}, leaving the
-  left most copy of each item in the \meta{comma list}.  The \meta{item}
-  comparison takes place on a token basis, as for \cs{tl_if_eq:nn(TF)}.
-  \begin{texnote}
-    This function iterates through every item in the \meta{comma list} and
-    does a comparison with the \meta{items} already checked. It is therefore
-    relatively slow with large comma lists.
-    Furthermore, it may fail if any of the items in the
-    \meta{comma list} contains |{|, |}|, or |#|
-    (assuming the usual \TeX{} category codes apply).
-  \end{texnote}
-\end{function}
-
-\begin{function}[updated = 2011-09-06]
-  {
-    \clist_remove_all:Nn,  \clist_remove_all:cn,
-    \clist_gremove_all:Nn, \clist_gremove_all:cn
-  }
-  \begin{syntax}
-    \cs{clist_remove_all:Nn} \meta{comma list} \Arg{item}
-  \end{syntax}
-  Removes every occurrence of \meta{item} from the \meta{comma list}.
-  The \meta{item} comparison takes place on a token basis, as for
-  \cs{tl_if_eq:nn(TF)}.
-  \begin{texnote}
-    The function may fail if the \meta{item} contains |{|, |}|, or |#|
-    (assuming the usual \TeX{} category codes apply).
-  \end{texnote}
-\end{function}
-
-\begin{function}[added = 2014-07-18]
-  {
-    \clist_reverse:N, \clist_reverse:c,
-    \clist_greverse:N, \clist_greverse:c
-  }
-  \begin{syntax}
-    \cs{clist_reverse:N} \meta{comma list}
-  \end{syntax}
-  Reverses the order of items stored in the \meta{comma list}.
-\end{function}
-
-\begin{function}[added = 2014-07-18]{\clist_reverse:n}
-  \begin{syntax}
-    \cs{clist_reverse:n} \Arg{comma list}
-  \end{syntax}
-  Leaves the items in the \meta{comma list} in the input stream in
-  reverse order.  Contrarily to other what is done for other
-  \texttt{n}-type \meta{comma list} arguments, braces and spaces are
-  preserved by this process.
-  \begin{texnote}
-    The result is returned within \tn{unexpanded}, which means that the
-    comma list does not expand further when appearing in an
-    \texttt{x}-type argument expansion.
-  \end{texnote}
-\end{function}
-
-\begin{function}[added = 2017-02-06]
-  {\clist_sort:Nn, \clist_sort:cn, \clist_gsort:Nn, \clist_gsort:cn}
-  \begin{syntax}
-    \cs{clist_sort:Nn} \meta{clist var} \Arg{comparison code}
-  \end{syntax}
-  Sorts the items in the \meta{clist var} according to the
-  \meta{comparison code}, and assigns the result to
-  \meta{clist var}. The details of sorting comparison are
-  described in Section~\ref{sec:l3sort:mech}.
-\end{function}
-
-\section{Comma list conditionals}
-
-\begin{function}[EXP,pTF]{\clist_if_empty:N, \clist_if_empty:c}
-  \begin{syntax}
-    \cs{clist_if_empty_p:N} \meta{comma list}
-    \cs{clist_if_empty:NTF} \meta{comma list} \Arg{true code} \Arg{false code}
-  \end{syntax}
-  Tests if the \meta{comma list} is empty (containing no items).
-\end{function}
-
-\begin{function}[EXP, pTF, added = 2014-07-05]{\clist_if_empty:n}
-  \begin{syntax}
-    \cs{clist_if_empty_p:n} \Arg{comma list}
-    \cs{clist_if_empty:nTF} \Arg{comma list} \Arg{true code} \Arg{false code}
-  \end{syntax}
-  Tests if the \meta{comma list} is empty (containing no items).
-  The rules for space trimming are as for other \texttt{n}-type
-  comma-list functions, hence the comma list |{~,~,,~}| (without
-  outer braces) is empty, while |{~,{},}| (without outer braces)
-  contains one element, which happens to be empty: the comma-list
-  is not empty.
-\end{function}
-
-\begin{function}[updated = 2011-09-06, TF]
-  {
-     \clist_if_in:Nn, \clist_if_in:NV, \clist_if_in:No,
-     \clist_if_in:cn, \clist_if_in:cV, \clist_if_in:co,
-     \clist_if_in:nn, \clist_if_in:nV, \clist_if_in:no
-  }
-  \begin{syntax}
-    \cs{clist_if_in:NnTF} \meta{comma list} \Arg{item} \Arg{true code} \Arg{false code}
-  \end{syntax}
-  Tests if the \meta{item} is present in the \meta{comma list}.
-  In the case of an \texttt{n}-type \meta{comma list}, the usual rules
-  of space trimming and brace stripping apply.  Hence,
+  Cells \emph{continuing} from the previous page can be explicitly
+  marked.  You can set a code fragment to append to such cells using
+  \tn{TopicSetContinuationCode}:
   \begin{verbatim}
-    \clist_if_in:nnTF { a , {b}~ , {b} , c } { b } {true} {false}
+    \TopicSetContinuationCode{\ (cont.)}
   \end{verbatim}
-  yields \texttt{true}.
-  \begin{texnote}
-    The function may fail if the \meta{item} contains |{|, |}|, or |#|
-    (assuming the usual \TeX{} category codes apply).
-  \end{texnote}
-\end{function}
-
-\section{Mapping to comma lists}
-
-The functions described in this section apply a specified function
-to each item of a comma list.
-
-When the comma list is given explicitly, as an \texttt{n}-type argument,
-spaces are trimmed around each item.
-If the result of trimming spaces is empty, the item is ignored.
-Otherwise, if the item is surrounded by braces, one set is removed,
-and the result is passed to the mapped function. Thus, if the
-comma list that is being mapped is \verb*|{a , {{b} }, ,{}, {c},}|
-then the arguments passed to the mapped function are
-`\verb*|a|', `\verb*|{b} |', an empty argument, and `\verb*|c|'.
-
-When the comma list is given as an \texttt{N}-type argument, spaces
-have already been trimmed on input, and items are simply stripped
-of one set of braces if any. This case is more efficient than using
-\texttt{n}-type comma lists.
-
-\begin{function}[rEXP, updated = 2012-06-29]
-  {\clist_map_function:NN, \clist_map_function:cN, \clist_map_function:nN}
-  \begin{syntax}
-    \cs{clist_map_function:NN} \meta{comma list} \meta{function}
-  \end{syntax}
-  Applies \meta{function} to every \meta{item} stored in the
-  \meta{comma list}. The \meta{function} receives one argument for
-  each iteration. The \meta{items} are returned from left to right.
-  The function \cs{clist_map_inline:Nn} is in general more efficient
-  than \cs{clist_map_function:NN}.
-\end{function}
-
-\begin{function}[updated = 2012-06-29]
-  {\clist_map_inline:Nn, \clist_map_inline:cn, \clist_map_inline:nn}
-  \begin{syntax}
-    \cs{clist_map_inline:Nn} \meta{comma list} \Arg{inline function}
-  \end{syntax}
-  Applies \meta{inline function} to every \meta{item} stored
-  within the \meta{comma list}. The \meta{inline function} should
-  consist of code which receives the \meta{item} as |#1|.
-  The \meta{items} are returned from left to right.
-\end{function}
-
-\begin{function}[updated = 2012-06-29]
-  {\clist_map_variable:NNn, \clist_map_variable:cNn, \clist_map_variable:nNn}
-  \begin{syntax}
-    \cs{clist_map_variable:NNn} \meta{comma list} \meta{variable} \Arg{code}
-  \end{syntax}
-  Stores each \meta{item} of the \meta{comma list} in turn in the
-  (token list) \meta{variable} and applies the \meta{code}.  The
-  \meta{code} will usually make use of the \meta{variable}, but this
-  is not enforced.  The assignments to the \meta{variable} are local.
-  The \meta{items} are returned from left to right.
-\end{function}
-
-\begin{function}[rEXP, updated = 2012-06-29]{\clist_map_break:}
-  \begin{syntax}
-    \cs{clist_map_break:}
-  \end{syntax}
-  Used to terminate a \cs[no-index]{clist_map_\ldots{}} function before all
-  entries in the \meta{comma list} have been processed. This
-  normally takes place within a conditional statement, for example
+  By default no mark is appended and you can reset to the default
+  using
   \begin{verbatim}
-    \clist_map_inline:Nn \l_my_clist
-      {
-        \str_if_eq:nnTF { #1 } { bingo }
-          { \clist_map_break: }
-          {
-            % Do something useful
-          }
-      }
+     \TopicSetContinuationCode{}
   \end{verbatim}
-  Use outside of a \cs[no-index]{clist_map_\ldots{}} scenario leads to low
-  level \TeX{} errors.
-  \begin{texnote}
-    When the mapping is broken, additional tokens may be inserted
-    before further items are taken
-    from the input stream. This depends on the design of the mapping
-    function.
-  \end{texnote}
-\end{function}
+\end{function}\smallskip
 
-\begin{function}[updated = 2012-06-29, rEXP]{\clist_map_break:n}
+\begin{function}{\TopicSetVPos}
   \begin{syntax}
-    \cs{clist_map_break:n} \Arg{code}
+    \tn{TopicSetVPos}\marg{vertical position specification}
   \end{syntax}
-  Used to terminate a \cs[no-index]{clist_map_\ldots{}} function before all
-  entries in the \meta{comma list} have been processed, inserting
-  the \meta{code} after the mapping has ended. This
-  normally takes place within a conditional statement, for example
-  \begin{verbatim}
-    \clist_map_inline:Nn \l_my_clist
-      {
-        \str_if_eq:nnTF { #1 } { bingo }
-          { \clist_map_break:n { <code> } }
-          {
-            % Do something useful
-          }
-      }
-  \end{verbatim}
-  Use outside of a \cs[no-index]{clist_map_\ldots{}} scenario leads to low
-  level \TeX{} errors.
-  \begin{texnote}
-    When the mapping is broken, additional tokens may be inserted
-    before the \meta{code} is
-    inserted into the input stream.
-    This depends on the design of the mapping function.
-  \end{texnote}
-\end{function}
+  You can set the vertical position for \tn{Topic} cells by using
+  \tn{TopicSetVPos}.  Allowed \meta{vertical position specification}s
+  are \enquote{\texttt{b}} (bottom), \enquote{\texttt{c}} (center)
+  and the default \enquote{\texttt{t}} (top).
+\end{function}\smallskip
 
-\begin{function}[EXP, added = 2012-07-13]
-  {\clist_count:N, \clist_count:c, \clist_count:n}
+\begin{function}{\TopicSetWidth}
   \begin{syntax}
-    \cs{clist_count:N} \meta{comma list}
+    \tn{TopicSetVPos}\marg{cell width specification}
   \end{syntax}
-  Leaves the number of items in the \meta{comma list} in the input
-  stream as an \meta{integer denotation}. The total number of items
-  in a \meta{comma list} includes those which are duplicates,
-  \emph{i.e.}~every item in a \meta{comma list} is counted.
-\end{function}
-
-\section{Using the content of comma lists directly}
-
-\begin{function}[EXP, added = 2013-05-26]{\clist_use:Nnnn, \clist_use:cnnn}
-  \begin{syntax}
-    \cs{clist_use:Nnnn} \meta{clist~var} \Arg{separator~between~two} \Arg{separator~between~more~than~two} \Arg{separator~between~final~two}
-  \end{syntax}
-  Places the contents of the \meta{clist~var} in the input stream,
-  with the appropriate \meta{separator} between the items.  Namely, if
-  the comma list has more than two items, the \meta{separator between
-    more than two} is placed between each pair of items except the
-  last, for which the \meta{separator between final two} is used.  If
-  the comma list has exactly two items, then they are placed in the input
-  stream separated by the \meta{separator between two}.  If the comma
-  list has a single item, it is placed in the input stream, and a comma
-  list with no items produces no output.  An error is raised if
-  the variable does not exist or if it is invalid.
-
-  For example,
-  \begin{verbatim}
-    \clist_set:Nn \l_tmpa_clist { a , b , , c , {de} , f }
-    \clist_use:Nnnn \l_tmpa_clist { ~and~ } { ,~ } { ,~and~ }
-  \end{verbatim}
-  inserts \enquote{\texttt{a, b, c, de, and f}} in the input
-  stream.  The first separator argument is not used in this case
-  because the comma list has more than $2$ items.
-  \begin{texnote}
-    The result is returned within the \tn{unexpanded}
-    primitive (\cs{exp_not:n}), which means that the \meta{items}
-    do not expand further when appearing in an \texttt{x}-type
-    argument expansion.
-  \end{texnote}
-\end{function}
-
-\begin{function}[EXP, added = 2013-05-26]{\clist_use:Nn, \clist_use:cn}
-  \begin{syntax}
-    \cs{clist_use:Nn} \meta{clist~var} \Arg{separator}
-  \end{syntax}
-  Places the contents of the \meta{clist~var} in the input stream,
-  with the \meta{separator} between the items. If the comma
-  list has a single item, it is placed in the input stream, and a comma
-  list with no items produces no output.  An error is raised if
-  the variable does not exist or if it is invalid.
-
-  For example,
-  \begin{verbatim}
-    \clist_set:Nn \l_tmpa_clist { a , b , , c , {de} , f }
-    \clist_use:Nn \l_tmpa_clist { ~and~ }
-  \end{verbatim}
-  inserts \enquote{\texttt{a and b and c and de and f}} in the input
-  stream.
-  \begin{texnote}
-    The result is returned within the \tn{unexpanded}
-    primitive (\cs{exp_not:n}), which means that the \meta{items}
-    do not expand further when appearing in an \texttt{x}-type
-    argument expansion.
-  \end{texnote}
-\end{function}
-
-\section{Comma lists as stacks}
-
-Comma lists can be used as stacks, where data is pushed to and popped
-from the top of the comma list. (The left of a comma list is the top, for
-performance reasons.) The stack functions for comma lists are not
-intended to be mixed with the general ordered data functions detailed
-in the previous section: a comma list should either be used as an
-ordered data type or as a stack, but not in both ways.
-
-\begin{function}[updated = 2012-05-14]{\clist_get:NN, \clist_get:cN}
-  \begin{syntax}
-    \cs{clist_get:NN} \meta{comma list} \meta{token list variable}
-  \end{syntax}
-  Stores the left-most item from a \meta{comma list} in the
-  \meta{token list variable} without removing it from the
-  \meta{comma list}. The \meta{token list variable} is assigned locally.
-  If the \meta{comma list} is empty the \meta{token list variable}
-  is set to the marker value \cs{q_no_value}.
-\end{function}
-
-\begin{function}[TF, added = 2012-05-14]{\clist_get:NN, \clist_get:cN}
-  \begin{syntax}
-    \cs{clist_get:NNTF} \meta{comma list} \meta{token list variable} \Arg{true code} \Arg{false code}
-  \end{syntax}
-  If the \meta{comma list} is empty, leaves the \meta{false code} in the
-  input stream.  The value of the \meta{token list variable} is
-  not defined in this case and should not be relied upon.  If the
-  \meta{comma list} is non-empty, stores the top item from the
-  \meta{comma list} in the \meta{token list variable} without removing it
-  from the \meta{comma list}. The \meta{token list variable} is assigned
-  locally.
-\end{function}
-
-\begin{function}[updated = 2011-09-06]{\clist_pop:NN, \clist_pop:cN}
-  \begin{syntax}
-    \cs{clist_pop:NN} \meta{comma list} \meta{token list variable}
-  \end{syntax}
-  Pops the left-most item from a \meta{comma list} into the
-  \meta{token list variable}, \emph{i.e.}~removes the item from the
-  comma list and stores it in the \meta{token list variable}.
-  Both of the variables are assigned locally.
-\end{function}
-
-\begin{function}{\clist_gpop:NN, \clist_gpop:cN}
-  \begin{syntax}
-    \cs{clist_gpop:NN} \meta{comma list} \meta{token list variable}
-  \end{syntax}
-  Pops the left-most item from a \meta{comma list} into the
-  \meta{token list variable}, \emph{i.e.}~removes the item from the
-  comma list and stores it in the \meta{token list variable}.
-  The \meta{comma list} is modified globally, while the assignment of
-  the \meta{token list variable} is local.
-\end{function}
-
-\begin{function}[TF, added = 2012-05-14]{\clist_pop:NN, \clist_pop:cN}
-  \begin{syntax}
-    \cs{clist_pop:NNTF} \meta{comma list} \meta{token list variable} \Arg{true code} \Arg{false code}
-  \end{syntax}
-  If the \meta{comma list} is empty, leaves the \meta{false code} in the
-  input stream.  The value of the \meta{token list variable} is
-  not defined in this case and should not be relied upon.  If the
-  \meta{comma list} is non-empty, pops the top item from the
-  \meta{comma list} in the \meta{token list variable}, \emph{i.e.}~removes
-  the item from the \meta{comma list}. Both the \meta{comma list} and the
-  \meta{token list variable} are assigned locally.
-\end{function}
-
-\begin{function}[TF, added = 2012-05-14]{\clist_gpop:NN, \clist_gpop:cN}
-  \begin{syntax}
-    \cs{clist_gpop:NNTF} \meta{comma list} \meta{token list variable} \Arg{true code} \Arg{false code}
-  \end{syntax}
-  If the \meta{comma list} is empty, leaves the \meta{false code} in the
-  input stream.  The value of the \meta{token list variable} is
-  not defined in this case and should not be relied upon.  If the
-  \meta{comma list} is non-empty, pops the top item from the
-  \meta{comma list} in the \meta{token list variable}, \emph{i.e.}~removes
-  the item from the \meta{comma list}. The \meta{comma list} is modified
-  globally, while the \meta{token list variable} is assigned locally.
-\end{function}
-
-\begin{function}
-  {
-    \clist_push:Nn,  \clist_push:NV,  \clist_push:No,  \clist_push:Nx,
-    \clist_push:cn,  \clist_push:cV,  \clist_push:co,  \clist_push:cx,
-    \clist_gpush:Nn, \clist_gpush:NV, \clist_gpush:No, \clist_gpush:Nx,
-    \clist_gpush:cn, \clist_gpush:cV, \clist_gpush:co, \clist_gpush:cx
-  }
-  \begin{syntax}
-    \cs{clist_push:Nn} \meta{comma list} \Arg{items}
-  \end{syntax}
-  Adds the \Arg{items} to the top of the \meta{comma list}.
-  Spaces are removed from both sides of each item as for any
-  \texttt{n}-type comma list.
-\end{function}
-
-\section{Using a single item}
-
-\begin{function}[added = 2014-07-17, EXP]
-  {\clist_item:Nn, \clist_item:cn, \clist_item:nn}
-  \begin{syntax}
-    \cs{clist_item:Nn} \meta{comma list} \Arg{integer expression}
-  \end{syntax}
-  Indexing items in the \meta{comma list} from~$1$ at the top (left), this
-  function evaluates the \meta{integer expression} and leaves the
-  appropriate item from the comma list in the input stream. If the
-  \meta{integer expression} is negative, indexing occurs from the
-  bottom (right) of the comma list. When the \meta{integer expression}
-  is larger than the number of items in the \meta{comma list} (as
-  calculated by \cs{clist_count:N}) then the function expands to
-  nothing.
-  \begin{texnote}
-    The result is returned within the \tn{unexpanded}
-    primitive (\cs{exp_not:n}), which means that the \meta{item}
-    does not expand further when appearing in an \texttt{x}-type
-    argument expansion.
-  \end{texnote}
-\end{function}
-
-\section{Viewing comma lists}
-
-\begin{function}[updated = 2015-08-03]{\clist_show:N, \clist_show:c}
-  \begin{syntax}
-    \cs{clist_show:N} \meta{comma list}
-  \end{syntax}
-  Displays the entries in the \meta{comma list} in the terminal.
-\end{function}
-
-\begin{function}[updated = 2013-08-03]{\clist_show:n}
-  \begin{syntax}
-    \cs{clist_show:n} \Arg{tokens}
-  \end{syntax}
-  Displays the entries in the comma list in the terminal.
-\end{function}
-
-\begin{function}[added = 2014-08-22, updated = 2015-08-03]{\clist_log:N, \clist_log:c}
-  \begin{syntax}
-    \cs{clist_log:N} \meta{comma list}
-  \end{syntax}
-  Writes the entries in the \meta{comma list} in the log file.  See
-  also \cs{clist_show:N} which displays the result in the terminal.
-\end{function}
-
-\begin{function}[added = 2014-08-22]{\clist_log:n}
-  \begin{syntax}
-    \cs{clist_log:n} \Arg{tokens}
-  \end{syntax}
-  Writes the entries in the comma list in the log file.  See also
-  \cs{clist_show:n} which displays the result in the terminal.
-\end{function}
-
-\section{Constant and scratch comma lists}
-
-\begin{variable}[added = 2012-07-02]{\c_empty_clist}
-  Constant that is always empty.
-\end{variable}
-
-\begin{variable}[added = 2011-09-06]{\l_tmpa_clist, \l_tmpb_clist}
-  Scratch comma lists for local assignment. These are never used by
-  the kernel code, and so are safe for use with any \LaTeX3-defined
-  function. However, they may be overwritten by other non-kernel
-  code and so should only be used for short-term storage.
-\end{variable}
-
-\begin{variable}[added = 2011-09-06]{\g_tmpa_clist, \g_tmpb_clist}
-  Scratch comma lists for global assignment. These are never used by
-  the kernel code, and so are safe for use with any \LaTeX3-defined
-  function. However, they may be overwritten by other non-kernel
-  code and so should only be used for short-term storage.
-\end{variable}
+  You can set the width of the \tn{Topic} cells by using
+  \tn{TopicSetWidth}.  Allowed \meta{cell width specification}s are
+  \enquote{\texttt{=}} (fit column width) and the default
+  \enquote{\texttt{*}} (fit natural content width).
+\end{function}\smallskip
 
 \end{documentation}
 
