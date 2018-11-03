@@ -1,12 +1,9 @@
-NAME  = topiclongtable
-DOC   = topiclongtable-doc
+PKG   = topiclongtable
+DOC   = $(PKG)-doc
 SHELL = bash
 PWD   = $(shell pwd)
-VERS  = $(shell ltxfileinfo -v $(NAME).dtx|sed -e 's/^v//')
-LOCAL = $(shell kpsewhich --var-value TEXMFLOCAL)
 UTREE = $(shell kpsewhich --var-value TEXMFHOME)
-all: $(DOC).pdf
-	test -e README.txt && mv README.txt README || exit 0
+all: README.md $(PKG).sty $(DOC).tex $(DOC).pdf
 $(DOC).pdf: $(DOC).tex
 	pdflatex --recorder --interaction=batchmode $(DOC).tex > /dev/null
 	if [ -f $(DOC).glo ]; then makeindex -q -s gglo.ist -o $(DOC).gls $(DOC).glo; fi
@@ -14,22 +11,18 @@ $(DOC).pdf: $(DOC).tex
 	pdflatex --recorder --interaction=batchmode $(DOC).tex > /dev/null
 	pdflatex --recorder --interaction=batchmode $(DOC).tex > /dev/null
 clean:
-	rm -f $(DOC).{aux,fls,glo,gls,hd,idx,ilg,ind,ins,log,out}
+	rm -f $(DOC).{aux,fls,glo,gls,hd,idx,ilg,ind,ins,log,out,tlt}
 distclean: clean
-	rm -f $(DOC).pdf
-inst: all
-	mkdir -p $(UTREE)/{tex,source,doc}/latex/$(NAME)
-	cp $(NAME).dtx $(UTREE)/source/latex/$(NAME)
-	cp $(NAME).sty $(UTREE)/tex/latex/$(NAME)
-	cp $(NAME).pdf $(UTREE)/doc/latex/$(NAME)
+	rm -f $(DOC).pdf $(PKG).zip
 install: all
-	sudo mkdir -p $(LOCAL)/{tex,source,doc}/latex/$(NAME)
-	sudo cp $(NAME).dtx $(LOCAL)/source/latex/$(NAME)
-	sudo cp $(NAME).sty $(LOCAL)/tex/latex/$(NAME)
-	sudo cp $(NAME).pdf $(LOCAL)/doc/latex/$(NAME)
+	mkdir -p $(UTREE)/{tex,doc}/latex/$(PKG)
+	cp $(PKG).sty $(UTREE)/tex/latex/$(PKG)
+	cp $(DOC).{pdf,tex} README.md $(UTREE)/doc/latex/$(PKG)
+uninstall:
+	rm -r $(UTREE)/{tex,doc}/latex/$(PKG)
 zip: all
-	ln -sf . $(NAME)
-	zip -Drq $(PWD)/$(NAME)-$(VERS).zip $(NAME)/{README,$(NAME).{pdf,dtx}}
-	rm $(NAME)
+	ln -sf . $(PKG)
+	zip -Drq $(PWD)/$(PKG).zip $(PKG)/{README.md,$(PKG).{sty},$(DOC).{tex,pdf}}
+	rm $(PKG)
 watch:
-	ls $(DOC).tex | entr -n -s 'make distclean $(DOC).pdf || say error'
+	ls $(DOC).tex | entr -n -s 'make distclean $(DOC).pdf'
