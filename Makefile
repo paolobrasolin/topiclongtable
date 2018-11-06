@@ -22,7 +22,7 @@ uninstall:
 	rm -r $(UTREE)/{tex,doc}/latex/$(PKG)
 zip: all
 	ln -sf . $(PKG)
-	zip -Drq $(PWD)/$(PKG).zip $(PKG)/{README.md,$(PKG).{sty},$(DOC).{tex,pdf}}
+	zip -Drq $(PWD)/$(PKG).zip $(PKG)/{README.md,$(PKG).sty,$(DOC).{tex,pdf}}
 	rm $(PKG)
 watch:
 	ls $(DOC).tex | entr -n -s 'make distclean $(DOC).pdf'
