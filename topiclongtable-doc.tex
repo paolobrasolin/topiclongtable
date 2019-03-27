@@ -29,7 +29,7 @@
   \href{mailto:paolo.brasolin@gmail.com}{paolo.brasolin@gmail.com}
 }
 
-\date{2018/11/06 v1.2.1}
+\date{2019/03/27 v1.3.0}
 
 \maketitle
 
@@ -63,7 +63,7 @@ To use the package install it in your tree (or put \file{topiclongtable.sty} in 
 
 \subsection*{Environment}
 
-\begin{function}{topiclongtable}
+\begin{function}[updated=2019-03-27]{topiclongtable}
   \begin{syntax}
     \tn[no-index]{begin}\{\env{topiclongtable}\}\marg{column specification}
     \ \ \meta{cells specification}
@@ -74,11 +74,9 @@ To use the package install it in your tree (or put \file{topiclongtable.sty} in 
   available in the former.
 
   To use \pkg{topiclongtable} macros you must \emph{prepend} \enquote{\texttt{F}}
-  to the first column specification and \enquote{\texttt{T}} to all others.  You
-  can omit the prefix only on columns following the last one that contains
-  \pkg{topiclongtable} macros:
+  to the first column specification and \enquote{\texttt{T}} to all others:
   \begin{verbatim}
-    \begin{topiclongtable}{|Fl|Tl|Tl|Tr|l|r}
+    \begin{topiclongtable}{|Fl|Tl|Tl|Tr|Tl|Tr}
       % ...
     \end{topiclongtable}
   \end{verbatim}
@@ -100,7 +98,7 @@ To use the package install it in your tree (or put \file{topiclongtable.sty} in 
 
 The behaviour of \tn{Topic} can be observed in the following complete example:
 \begin{verbatim}
-  \begin{topiclongtable}{|Fl|Tl|Tl|l|}
+  \begin{topiclongtable}{|Fl|Tl|Tl|Tl|}
     \Topic[Topic 1] & \Topic[Subtopic 1] & \Topic[Subsubtopic 1] & Foo \\
     \Topic          & \Topic             & \Topic[Subsubtopic 2] & Bar \\ 
     \Topic          & \Topic[Subtopic 1] & \Topic[Subsubtopic 2] & Baz \\ 
@@ -109,7 +107,7 @@ The behaviour of \tn{Topic} can be observed in the following complete example:
     \Topic          & \Topic             & \Topic                & Bop \\
   \end{topiclongtable}
 \end{verbatim}
-\begin{topiclongtable}{|Fl|Tl|Tl|l|}
+\begin{topiclongtable}{|Fl|Tl|Tl|Tl|}
   \Topic[Topic 1] & \Topic[Subtopic 1] & \Topic[Subsubtopic 1] & Foo \\
   \Topic          & \Topic             & \Topic[Subsubtopic 2] & Bar \\ 
   \Topic          & \Topic[Subtopic 1] & \Topic[Subsubtopic 2] & Baz \\ 
@@ -145,7 +143,7 @@ Here is a breakdown of the manifested behaviour:
 
 Here is the previous example with lines added:
 \begin{verbatim}
-  \begin{topiclongtable}{|Fl|Tl|Tl|l|}
+  \begin{topiclongtable}{|Fl|Tl|Tl|Tl|}
     \hline\endhead
     \hline\endfoot
     \TopicLine \Topic[T1] & \Topic[ST1] & \Topic[SST1] & Foo \\
@@ -156,7 +154,7 @@ Here is the previous example with lines added:
     \TopicLine \Topic     & \Topic      & \Topic       & Bop \\
   \end{topiclongtable}
 \end{verbatim}
-\begin{topiclongtable}{|Fl|Tl|Tl|l|}
+\begin{topiclongtable}{|Fl|Tl|Tl|Tl|}
   \hline\endhead
   \hline\endfoot
   \TopicLine \Topic[T1] & \Topic[ST1] & \Topic[SST1] & Foo \\
@@ -194,7 +192,7 @@ All settings described in this section are global and can be changed between tab
 Consider this example across two pages:
 \begin{verbatim}
   \TopicSetContinuationCode{\ (cont.)}
-  \begin{topiclongtable}{|Fl|Tl|Tl|l|}
+  \begin{topiclongtable}{|Fl|Tl|Tl|Tl|}
     \hline\endhead
     \hline\endfoot
     \TopicLine \Topic[A] & \Topic[B] &  1 \\
@@ -207,7 +205,7 @@ Consider this example across two pages:
   \end{topiclongtable}
 \end{verbatim}
 \TopicSetContinuationCode{\ (cont.)}
-\begin{topiclongtable}{|Fl|Tl|l|}
+\begin{topiclongtable}{|Fl|Tl|Tl|}
   \hline\endhead
   \hline\endfoot
   \TopicLine \Topic[A] & \Topic[B] &  1 \\
@@ -247,7 +245,7 @@ Consider this example across two pages:
 Here is an example of \emph{bottom} alignment:
 \begin{verbatim}
   \TopicSetVPos{b}
-  \begin{topiclongtable}{|Fl|Tl|Tl|l|}
+  \begin{topiclongtable}{|Fl|Tl|Tl|Tl|}
     \hline\endhead
     \hline\endfoot
     \TopicLine \Topic[T1] & \Topic[ST1] & Foo \\
@@ -256,7 +254,7 @@ Here is an example of \emph{bottom} alignment:
   \end{topiclongtable}
 \end{verbatim}
 \TopicSetVPos{b}
-\begin{topiclongtable}{|Fl|Tl|Tl|l|}
+\begin{topiclongtable}{|Fl|Tl|Tl|Tl|}
   \hline\endhead
   \hline\endfoot
   \TopicLine \Topic[T1] & \Topic[ST1] & \Topic[SST1] & Foo \\
