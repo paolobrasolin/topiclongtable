@@ -21,7 +21,7 @@
 \RequirePackage{longtable}[2014/10/28]
 \PassOptionsToPackage{longtable}{multirow}
 
-\ProvidesExplPackage {topiclongtable} {2019/03/27} {1.3.0} {Renders autocollapsing cells in longtables}
+\ProvidesExplPackage {topiclongtable} {2019/07/09} {1.3.1} {Renders autocollapsing cells in longtables}
 
 \ProcessOptions\relax
 
@@ -101,6 +101,7 @@
   %% reset counters and table variables
   \int_gzero:N \g_tlt_col_idx_int
   \int_gzero:N \g_tlt_row_idx_int
+  \prop_gclear:N \g_tlt_topics_labels_prop
   \clist_gset:Nn \g_tlt_multirows_heights_clist \c_empty_clist
   \clist_gset:Nn \g_tlt_rows_spans_prop \c_empty_clist
 }
