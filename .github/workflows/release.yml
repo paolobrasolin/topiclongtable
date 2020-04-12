@@ -39,17 +39,6 @@ jobs:
         tlmgr install alphalph booktabs hologo enumitem csquotes fancyvrb underscore zref multirow
     - name: Run build
       run: make VERSION=${{ steps.get_tag.outputs.tag }} dist/topiclongtable-${{ steps.get_tag.outputs.tag }}.zip
-    - name: Submit to CTAN
-      uses: paolobrasolin/ctan-submit-action@v1
-      with:
-        action: upload
-        file_path: dist/topiclongtable-${{ steps.get_tag.outputs.tag }}.zip
-        fields: |
-          update: "true"
-          pkg: topiclongtable
-          version: ${{ steps.get_tag.outputs.version }}
-          uploader: Paolo Brasolin
-          email: paolo.brasolin@gmail.com 
     - name: Release on Github
       uses: docker://antonyurchenko/git-release:v3
       env:
@@ -62,3 +51,14 @@ jobs:
       with:
         args: |
             dist/topiclongtable-${{ steps.get_tag.outputs.tag }}.zip
+    - name: Submit to CTAN
+      uses: paolobrasolin/ctan-submit-action@v1
+      with:
+        action: upload
+        file_path: dist/topiclongtable-${{ steps.get_tag.outputs.tag }}.zip
+        fields: |
+          update: "true"
+          pkg: topiclongtable
+          version: ${{ steps.get_tag.outputs.version }}
+          uploader: Paolo Brasolin
+          email: paolo.brasolin@gmail.com 
