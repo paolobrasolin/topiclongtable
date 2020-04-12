@@ -42,7 +42,7 @@ jobs:
     - name: Submit to CTAN
       uses: paolobrasolin/ctan-submit-action@v1
       with:
-        action: submit
+        action: upload
         file_path: dist/topiclongtable-${{ steps.get_tag.outputs.tag }}.zip
         fields: |
           update: "true"
