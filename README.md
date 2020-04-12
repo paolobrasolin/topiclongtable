@@ -6,12 +6,6 @@ This work is maintained by Paolo Brasolin (<paolo.brasolin@gmail.com>).
 
 This work is licensed under MIT License.
 
-This work is a LaTeX package consisting of the following files:
-  * README.md
-  * topiclongtable.sty
-  * topiclongtable-doc.tex
-  * topiclongtable-doc.pdf
-
 ---
 
 This LaTeX package extends `longtable` implementing cells that:
@@ -23,3 +17,6 @@ This LaTeX package extends `longtable` implementing cells that:
 
 The typical use case is a table spanning multiple pages that contains a list of hierarchically organized topics (hence the package name).
 
+---
+
+Copyright (c) 2017-2020 Paolo Brasolin (<paolo.brasolin@gmail.com>)
