@@ -17,7 +17,26 @@ jobs:
         echo ::set-output name=TAG::${GITHUB_REF/refs\/tags\//}
         echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/v/}
     - name: Install TeXLive
-      run: sudo apt-get install texlive-latex-base texlive-latex-recommended texlive-latex-extra
+      env:
+        # TODO: actually cache the installation
+        TEXLIVE_INSTALL_PREFIX: ${{ runner.tool_cache }}/texlive
+      run: |
+        cd ${{ runner.temp }}
+        wget -q http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz
+        tar -xzf install-tl-unx.tar.gz
+        cd install-tl-20*
+        cat << EOF > texlive.profile
+        selected_scheme scheme-basic
+        tlpdbopt_install_docfiles 0
+        tlpdbopt_install_srcfiles 0
+        tlpdbopt_autobackup 0
+        tlpdbopt_sys_bin /usr/local/bin
+        EOF
+        ./install-tl --portable --profile=texlive.profile
+        # NOTE: we need to regain ownership before creating symlinks
+        sudo chown -R `whoami`:admin /usr/local/bin
+        $TEXLIVE_INSTALL_PREFIX/bin/x86_64-linux/tlmgr path add
+        tlmgr install alphalph booktabs hologo enumitem csquotes fancyvrb underscore zref multirow
     - name: Run build
       run: make VERSION=${{ steps.get_tag.outputs.tag }} dist/topiclongtable-${{ steps.get_tag.outputs.tag }}.zip
     - name: Release on Github
