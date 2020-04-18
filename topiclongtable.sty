@@ -251,6 +251,16 @@
   }
 }
 
+\cs_new:Nn \tlt_mark_topic:n {
+  \tl_if_novalue:nTF { #1 }
+    {
+      \tlt_get_topic:V { \g_tlt_col_idx_int }
+    }
+    {
+      \tlt_set_topic:Vn { \g_tlt_col_idx_int } { #1 }
+    }
+}
+
 \cs_generate_variant:Nn \tlt_get_topic:n { V }
 \cs_generate_variant:Nn \tlt_set_topic:nn { Vn }
 
@@ -409,9 +419,7 @@
 }
 
 %% the main command
-\NewDocumentCommand{\Topic}{o}{%
-  \IfValueTF{#1}{\tlt_set_topic:Vn{\g_tlt_col_idx_int}{#1}}{\tlt_get_topic:V{\g_tlt_col_idx_int}}%
-}
+\NewDocumentCommand{\Topic}{o}{\tlt_mark_topic:n{#1}}
 %% NOTE: it'd be nice to have \Topic[vpos][width][vmove]{text}
 %%   with the same meanings as \multirow[vpos]{nrows}[bigstruts]{width}[vmove]{text}
 %%   with specification \NewDocumentCommand{\Topic}{D[]{t}D[]{*}D[]{0sp}g}
