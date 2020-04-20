@@ -251,18 +251,19 @@
   }
 }
 
-\cs_new:Nn \tlt_mark_topic:n {
-  \tl_if_novalue:nTF { #1 }
-    {
-      \tlt_get_topic:V { \g_tlt_col_idx_int }
-    }
-    {
-      \tlt_set_topic:Vn { \g_tlt_col_idx_int } { #1 }
-    }
-}
-
+\cs_generate_variant:Nn \mark_new_topic:nn { Vn }
 \cs_generate_variant:Nn \tlt_get_topic:n { V }
 \cs_generate_variant:Nn \tlt_set_topic:nn { Vn }
+
+\cs_new:Nn \tlt_mark_topic:n {
+  \bool_if:NTF \g_tlt_rowtop_changed
+    { \mark_new_topic:Vn { \g_tlt_col_idx_int } { #1 } }
+    {
+      \tl_if_novalue:nTF { #1 }
+        { \tlt_get_topic:V { \g_tlt_col_idx_int } }
+        { \tlt_set_topic:Vn { \g_tlt_col_idx_int } { #1 } }
+    }
+}
 
 %% HEIGHTS COMPUTATIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -430,6 +431,104 @@
 %%   but the page breaks make it impossible to predict behaviour,
 %%   especially in relation to vmove - so in essence the settings would end
 %%   up being maximally local (equivalent to handmade multirows).
+
+\clist_new:N \g_tlt_rowtop_whole_topics_clist
+\clist_new:N \g_tlt_rowtop_stale_topics_clist
+\clist_new:N \g_tlt_rowtop_fresh_topics_clist
+
+\bool_new:N \g_tlt_rowtop_changed
+
+\msg_new:nnn {topiclongtable} {rowtop-empty-fresh-topic} {
+  A~fresh~row~topic~cannot~be~empty~\msg_line_context.
+}
+
+\cs_new:Nn \tlt_rowtop_compute:n {
+  % Clear stale/fresh topic lists
+  \clist_gclear:N \g_tlt_rowtop_stale_topics_clist
+  \clist_gclear:N \g_tlt_rowtop_fresh_topics_clist
+  % Reset changed flag to false
+  \bool_gset_false:N \g_tlt_rowtop_changed
+  % Parse topic list passed to command
+  \clist_set:Nn \l_tmpa_clist { #1 }
+  % Iterate over old topics
+  \clist_map_variable:NNn \g_tlt_rowtop_whole_topics_clist \l_tmpa_tl {
+    % Pop a new topic
+    \clist_pop:NN \l_tmpa_clist \l_tmpb_tl
+    \quark_if_no_value:NTF \l_tmpb_tl
+    {
+      % If no new topic was popped (i.e. clist is over)
+      % Flag as changed because we removed a level
+      \bool_gset_true:N \g_tlt_rowtop_changed
+      % Stop iterating (on old topics)
+      \clist_map_break:
+    } { }
+    % NOTE: below this point the new topic is guaranteed to be present
+    % If new topic is empty then default to old one
+    \tl_if_empty:NTF \l_tmpb_tl { \tl_set_eq:NN \l_tmpb_tl \l_tmpa_tl } { }
+    \tl_if_eq:NNTF \l_tmpa_tl \l_tmpb_tl
+      {
+        % If new topic is equal to old, put it in stale topics
+        \clist_put_right:NV \g_tlt_rowtop_stale_topics_clist \l_tmpb_tl
+      }
+      { 
+        % If new topic is different from old topic
+        % Flag as changed because we changed a level
+        \bool_gset_true:N \g_tlt_rowtop_changed
+        % Put new topic it in fresh topics
+        \clist_put_right:NV \g_tlt_rowtop_fresh_topics_clist \l_tmpb_tl 
+        % Stop iterating (on old topics)
+        \clist_map_break:
+        % NOTE: the remaining new topics (if any) will be fresh by default
+      }
+  }
+  % If there are leftover new topics, flag as changed because we gained some levels
+  \clist_if_empty:NTF \l_tmpa_clist { } { \bool_gset_true:N \g_tlt_rowtop_changed }
+  % Iterate over leftover new topics
+  \clist_map_variable:NNn \l_tmpa_clist \l_tmpa_tl {
+    % Throw an error if a leftover new topic is not explicit (they must be, since they are fresh by default)
+    \tl_if_empty:NTF \l_tmpa_tl { \msg_error:nn {topiclongtable} {rowtop-empty-fresh-topic} } { }
+  }
+  % Leftover new topics are fresh by default, so append them to fresh list
+  \clist_gconcat:NNN \g_tlt_rowtop_fresh_topics_clist \g_tlt_rowtop_fresh_topics_clist \l_tmpa_clist
+  % Update whole topic list with new topics, stale and fresh
+  \clist_gconcat:NNN \g_tlt_rowtop_whole_topics_clist \g_tlt_rowtop_stale_topics_clist \g_tlt_rowtop_fresh_topics_clist
+}
+
+\cs_new:Nn \tlt_rowtop_render: {
+  \multicolumn{\int_use:N \g_tlt_col_tot_int}{|l|}{\clist_use:Nn { \g_tlt_rowtop_whole_topics_clist } { : }}
+  % & \int_use:N \g_tlt_row_idx_int
+  \\
+  \hline% TODO: make customizable
+}
+
+\NewExpandableDocumentCommand{\RowTopics}{m}{%
+  \pagebreak[3]% TODO: is this really safe?
+  \tex_noalign:D
+    {
+      \tlt_rowtop_compute:n { #1 }
+
+      % NOTE: this is effectively replacing TopicLine
+      \CLINE_split:V \g_tlt_col_tot_int
+      \tlt_increment_row_index:
+
+      \on_first_row_of_page:N \l_tmpa_bool
+      \bool_lazy_or:nnTF { \g_tlt_rowtop_changed } { \l_tmpa_bool }
+        {
+          \cs_gset:Npn \__tlt_smuggled_cs:
+            {
+              \tlt_rowtop_render:
+              \nopagebreak% TODO: is this really safe?
+              \bool_gset_true:N \g_tlt_rowtop_changed % this is hackish, just to force coltop to rerender
+              % NOTE: no table line here, assumed to be inside tlt_rowtop_render
+              \tlt_increment_row_index:
+            }
+        }
+        {
+          \cs_gset_eq:NN \__tlt_smuggled_cs: \prg_do_nothing:
+        }
+      \group_insert_after:N \__tlt_smuggled_cs:
+    }
+}
 
 %% HOOKS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
