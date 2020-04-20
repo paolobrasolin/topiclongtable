@@ -392,12 +392,16 @@
 \newcolumntype{F}{>{\int_gset:Nn \g_tlt_col_idx_int {1}}}
 \newcolumntype{T}{>{\int_gincr:N \g_tlt_col_idx_int}}
 
-%% draws the separators, handles the row counter and labels to track pagebreaks
-\NewExpandableDocumentCommand{\TopicLine}{}{
-  \tex_noalign:D { \CLINE_split:V \g_tlt_col_tot_int }
+\cs_new:Nn \tlt_increment_row_index: {
   \int_gincr:N \g_tlt_row_idx_int
   \tl_set:Nx \l_tmpa_tl {TLT-\theLT@tables-\int_use:N \g_tlt_row_idx_int}
   \expandafter\zref@labelbyprops{\tl_use:N \l_tmpa_tl}{abspage}
+}
+
+%% draws the separators, handles the row counter and labels to track pagebreaks
+\NewExpandableDocumentCommand{\TopicLine}{}{
+  \tex_noalign:D {\CLINE_split:V \g_tlt_col_tot_int }
+  \tlt_increment_row_index:
 }
 
 %% the main environment
